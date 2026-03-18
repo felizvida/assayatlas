@@ -1,48 +1,49 @@
 # AssayAtlas Real-Data Training Tutorial
 
-This tutorial is intentionally hand-held. Every lesson uses real data, a real statistical workflow, and a real output rendered by the AssayAtlas workspace.
+This tutorial is intentionally hand-held. Every lesson uses a real public dataset, a real statistical workflow, and a biomedical wet-lab framing rendered through the AssayAtlas workspace.
 
 ## How to use this tutorial
 
 1. Start the app locally or open the deployed AssayAtlas home page.
 2. Open the Workspace or the Tutorial page.
 3. Work through the twenty use cases in order at least once.
-4. Re-run the flows with the provided CSV files to internalize the patterns.
+4. Re-run the flows with the provided CSV files to internalize the bench-science patterns.
 
 ## Training goals
 
 - Learn the SaaS navigation without friction.
 - See what publication-grade defaults should feel like.
-- Practice the twenty most meaningful Prism-style workflows with transparent results.
+- Practice twenty biomedical wet-lab workflows with transparent results and publication-ready figures.
 - Leave with exportable example figures and the raw input data for each lesson.
+- See clearly when a workflow is built from a public proxy dataset versus a directly biomedical source.
 
 
 ## Use Cases
 
 
-### 01. Two-Group Supplement Comparison
+### 01. Low-Dose Mineralization Rescue Assay
 
-**Goal:** Compare low-dose tooth growth by supplement and show every replicate.
+**Goal:** Compare low-dose mineralization rescue between two supplement chemistries while keeping every animal visible.
 
 **Analysis:** Welch t test + raw-point estimation plot
 
 **Data files:** data/raw/ToothGrowth.csv
 
-**Source:** ToothGrowth from the R datasets collection.
+**Source:** ToothGrowth from the R datasets collection, framed here as a preclinical mineralization assay proxy.
 
-**What to notice:** Prism users love being able to see raw points and the conclusion on one screen. This example keeps every animal visible while still surfacing the statistical decision.
+**What to notice:** Bench scientists trust this style of view because every replicate stays visible and the efficacy call is tied to a confidence interval, not a bar chart alone.
 
 ![Screenshot](/assets/screenshots/01-two-group-supplement-comparison.png)
 
 **Step-by-step**
 
-1. Open the Workspace and choose Two-Group Supplement Comparison.
-2. Review the input file preview and confirm the dose filter is 0.5 mg/day.
-3. Inspect the raw-point plot to make sure the replicate spread is visible before statistics.
-4. Read the automatic Welch t test result card and confidence interval.
-5. Export the figure as SVG or PNG from the figure actions menu.
+1. Open Low-Dose Mineralization Rescue Assay from the Tutorial library.
+2. Review the preview table and confirm the analysis is restricted to the 0.5 mg/day treatment arm in the preclinical cohort.
+3. Inspect the raw-point efficacy plot before reading the test result so replicate spread stays visible.
+4. Read the automatic Welch t test card and the 95% confidence interval for the treatment difference.
+5. Export the figure as SVG or PNG for a lab meeting slide or a draft results section.
 
-**Result summary:** Low-dose OJ produced a mean tooth length 5.25 units higher than VC, with Welch t 3.17 and p 0.006.
+**Result summary:** At the low dose, the OJ formulation looks biologically more active than VC, improving mean tooth length by 5.25 units. Welch's t test is the right statistical move here because it stays reliable when group variances may differ, and the 95% confidence interval [1.72, 8.78] keeps the likely size of the rescue effect visible alongside p 0.006.
 
 **Key metrics**
 
@@ -56,29 +57,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/01-two-group-supplement-comparison.png`
 
-### 02. Dose-Response Overview
+### 02. Vitamin C Dose Escalation Response
 
-**Goal:** Show how growth changes across three vitamin C dose levels.
+**Goal:** Show how a preclinical growth readout shifts across three dose levels in a simple dose-escalation study.
 
 **Analysis:** One-way ANOVA + Tukey multiple comparison
 
 **Data files:** data/raw/ToothGrowth.csv
 
-**Source:** ToothGrowth from the R datasets collection.
+**Source:** ToothGrowth from the R datasets collection, framed here as a three-arm dose-escalation efficacy proxy.
 
-**What to notice:** This workflow is common in assay exploration: a quick sanity check on monotonic dose behavior plus a formal omnibus test.
+**What to notice:** This feels like a classic wet-lab potency check: replicate-level spread, monotonic dose behavior, and formal post-hoc comparisons in one view.
 
 ![Screenshot](/assets/screenshots/02-dose-response-overview.png)
 
 **Step-by-step**
 
-1. Open the Dose-Response Overview example.
-2. Confirm the input file contains the full ToothGrowth table, not the low-dose subset.
-3. Inspect the dose-wise raw-point summary plot and the dose means.
-4. Read the ANOVA result and the pairwise dose comparison card.
-5. Use the export preset if you need a journal-ready PNG.
+1. Open Vitamin C Dose Escalation Response.
+2. Confirm the input file contains the full cohort so all three treatment levels remain in the analysis.
+3. Inspect the dose-wise raw-point summary plot to see whether the assay response rises monotonically.
+4. Read the ANOVA result and the pairwise dose-comparison card to identify where the separation appears.
+5. Use the publication export preset if you need a journal-ready raster or vector figure.
 
-**Result summary:** Dose explains a strong share of the growth variance (F 67.42, p < 0.001).
+**Result summary:** The dose-escalation pattern supports a biologically graded response rather than an isolated group difference: mean growth rises steadily across the three dose levels. A one-way ANOVA confirms that dose explains substantial response variance (F 67.42, p < 0.001), and Tukey follow-up contrasts are what tell you which dose steps are really driving the signal.
 
 **Key metrics**
 
@@ -92,29 +93,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/02-dose-response-overview.png`
 
-### 03. Grouped Mean Comparison
+### 03. Three-Arm Compound Response Screen
 
-**Goal:** Compare plant weight across a control and two treatment groups.
+**Goal:** Compare a control arm and two treated arms in a compact compound-response experiment.
 
 **Analysis:** One-way ANOVA + Tukey HSD
 
 **Data files:** data/raw/PlantGrowth.csv
 
-**Source:** PlantGrowth from the R datasets collection.
+**Source:** PlantGrowth from the R datasets collection, framed here as a three-arm compound-response assay proxy.
 
-**What to notice:** The dot-plus-summary view is one of the most loved Prism patterns because it keeps the data honest while still looking publication-ready.
+**What to notice:** This is the kind of figure wet-lab teams drop into update decks because it shows every replicate and the follow-up pairwise call without clutter.
 
 ![Screenshot](/assets/screenshots/03-grouped-mean-comparison.png)
 
 **Step-by-step**
 
-1. Open Grouped Mean Comparison from the left rail.
-2. Review the three-group preview table and verify there are ten replicates per arm.
-3. Inspect the polished dot-and-summary chart before looking at p values.
-4. Use the Tukey table to identify which treatment differs from control.
-5. Add the figure to a board if you want to combine it with other results.
+1. Open Three-Arm Compound Response Screen from the Tutorial list.
+2. Review the preview table and verify that each treatment arm contributes the same number of replicates.
+3. Inspect the dot-and-summary chart before looking at p values so the replicate structure is clear.
+4. Use the Tukey card to identify which treatment separates from the control condition.
+5. Add the figure to a board if you want to combine this hit-confirmation panel with orthogonal assays.
 
-**Result summary:** Treatment groups differ overall (F 4.85, p 0.016), with Treatment 2 showing the highest mean weight.
+**Result summary:** This reads like a hit-confirmation screen: Treatment 2 produces the strongest growth phenotype, while the overall arm-to-arm difference is supported by the omnibus ANOVA (F 4.85, p 0.016). The important statistical trick is using Tukey-adjusted pairwise follow-up after the omnibus test so the strongest arm is identified without over-reading raw mean separation alone.
 
 **Key metrics**
 
@@ -128,29 +129,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/03-grouped-mean-comparison.png`
 
-### 04. Factorial Experiment
+### 04. Matrix-by-Tension Interaction Screen
 
-**Goal:** Analyze a classic 2x3 factorial experiment with interaction effects.
+**Goal:** Assess whether scaffold material and applied tension interact in a biomaterials stress assay.
 
 **Analysis:** Two-way ANOVA with interaction
 
 **Data files:** data/raw/warpbreaks.csv
 
-**Source:** warpbreaks from the R datasets collection.
+**Source:** warpbreaks from the R datasets collection, framed here as a biomaterials tensile-stress assay proxy.
 
-**What to notice:** Many Prism users value how fast they can go from a factorial table to an interpretable graph. The interaction plot is the center of gravity here.
+**What to notice:** Interaction plots matter in translational lab work because they separate a main effect from a context-dependent effect that changes with the assay condition.
 
 ![Screenshot](/assets/screenshots/04-factorial-experiment.png)
 
 **Step-by-step**
 
-1. Open Factorial Experiment.
-2. Inspect the grouped preview and note the two wool types and three tension settings.
-3. Read the interaction plot first to understand the shape of the effect.
-4. Use the ANOVA table to see whether wool, tension, and their interaction matter.
-5. Export the figure and include the ANOVA table in your report bundle.
+1. Open Matrix-by-Tension Interaction Screen.
+2. Inspect the grouped preview and note the two material classes and three mechanical settings.
+3. Read the interaction plot first to understand whether the response curves stay parallel or diverge by condition.
+4. Use the ANOVA panel to separate the material effect, the tension effect, and the interaction term.
+5. Export the figure and the ANOVA summary if you need a methods-friendly interaction readout.
 
-**Result summary:** Tension dominates the response, while the wool-by-tension interaction is comparatively small in this classic factorial example.
+**Result summary:** The main biological story is a strong tension effect, with much weaker evidence that the material-specific response meaningfully changes across tension states. Two-way ANOVA is doing the critical work here because it separates the main effects from the interaction term, letting the team ask whether the scaffold changes the biology itself or just the overall baseline.
 
 **Key metrics**
 
@@ -164,29 +165,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/04-factorial-experiment.png`
 
-### 05. Paired Before-and-After Study
+### 05. Matched Before/After Neuroresponse Study
 
-**Goal:** Show within-subject change instead of treating repeated observations as independent.
+**Goal:** Measure within-subject change after intervention instead of pretending paired readouts are independent.
 
 **Analysis:** Paired t test + subject spaghetti plot
 
 **Data files:** data/raw/sleep.csv
 
-**Source:** sleep from the R datasets collection.
+**Source:** sleep from the R datasets collection, framed here as a matched before-and-after neuropharmacology proxy.
 
-**What to notice:** This is a classic Prism-style win: the graph makes the pairing obvious before the statistics speak.
+**What to notice:** Paired plots are a wet-lab staple because they surface donor-to-donor heterogeneity before the statistical summary flattens it.
 
 ![Screenshot](/assets/screenshots/05-paired-before-after.png)
 
 **Step-by-step**
 
-1. Open Paired Before-and-After Study.
-2. Verify that every subject appears in both conditions in the preview panel.
-3. Inspect the spaghetti plot to see whether the direction of change is consistent by subject.
-4. Review the paired t test and the mean paired difference.
-5. Use the notes panel to capture whether the result is biologically meaningful, not just statistically non-zero.
+1. Open Matched Before/After Neuroresponse Study.
+2. Verify from the preview that every subject contributes a baseline and a post-intervention readout.
+3. Inspect the paired-lines plot to see whether the direction of change is consistent donor by donor.
+4. Review the paired t test and the mean paired shift from baseline.
+5. Use the notes area to record whether the change looks biologically meaningful, not merely non-zero.
 
-**Result summary:** Subjects improved by 1.58 more units on average in group 2 than group 1, with paired t 4.06 and p 0.003.
+**Result summary:** The paired readout suggests a real within-subject neuroresponse after intervention, with subjects improving by 1.58 units on average in group 2 versus group 1. The key statistical trick is the paired t test: it uses each subject as their own control, which is biologically more faithful and usually more sensitive than pretending repeated observations are independent.
 
 **Key metrics**
 
@@ -200,29 +201,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/05-paired-before-after.png`
 
-### 06. Time-Course Summary
+### 06. Cellular Oxygen Demand Time Course
 
-**Goal:** Turn a small time-course table into a compact kinetic summary.
+**Goal:** Turn a short respirometry-style time course into a compact functional summary.
 
 **Analysis:** Area-under-the-curve summary + line plot
 
 **Data files:** data/raw/BOD.csv
 
-**Source:** BOD from the R datasets collection.
+**Source:** BOD from the R datasets collection, framed here as a cellular respirometry assay proxy.
 
-**What to notice:** Even basic time-course screens feel better when the graph and one-number summary live together. That fast feedback loop is part of the Prism appeal.
+**What to notice:** This is the kind of metabolic assay panel people want quickly: kinetics, endpoint, and AUC in one publication-ready card.
 
 ![Screenshot](/assets/screenshots/06-time-course-summary.png)
 
 **Step-by-step**
 
-1. Open Time-Course Summary.
-2. Inspect the input table and confirm that time increases monotonically.
-3. Review the line chart to see the saturation shape of the response.
-4. Read the computed AUC and final-value summary card.
-5. Export the figure if you need a quick panel for a methods update or internal review.
+1. Open Cellular Oxygen Demand Time Course.
+2. Inspect the input table and confirm the measurement times increase in the correct order.
+3. Review the line chart to see how quickly the assay response approaches a plateau.
+4. Read the AUC and terminal-value summary card for the compact kinetic interpretation.
+5. Export the panel if you need a clean metabolism figure for a progress review or manuscript draft.
 
-**Result summary:** The BOD time course reaches 19.8 at the final timepoint, with an AUC of 92.65.
+**Result summary:** The time course looks like a fast metabolic activation followed by a plateau, which is often the biological question in short functional assays. Reporting both the terminal value (19.8) and the integrated exposure-like summary AUC (92.65) keeps the interpretation from depending on a single timepoint.
 
 **Key metrics**
 
@@ -236,29 +237,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/06-time-course-summary.png`
 
-### 07. Repeated Growth Curves
+### 07. Longitudinal Organoid Growth Tracking
 
-**Goal:** Review repeated measures without collapsing away subject identity.
+**Goal:** Review repeated growth measurements while preserving each organoid trajectory.
 
 **Analysis:** Subject-wise growth lines + slope summary
 
 **Data files:** data/raw/Orange.csv
 
-**Source:** Orange from the R datasets collection.
+**Source:** Orange from the R datasets collection, framed here as a longitudinal organoid-growth assay proxy.
 
-**What to notice:** Researchers love when repeated-measures data stay visually intact instead of being flattened into a single average line.
+**What to notice:** Developmental and screening groups like this view because outlier trajectories and growth-rate differences stay visible instead of disappearing into a mean trace.
 
 ![Screenshot](/assets/screenshots/07-repeated-growth-curves.png)
 
 **Step-by-step**
 
-1. Open Repeated Growth Curves.
-2. Inspect the preview to see age and circumference recorded for multiple trees.
-3. Read the line chart to compare each tree trajectory over time.
-4. Use the slope summary card to identify the fastest and slowest growers.
-5. Add this view to a multi-panel board if you are telling a developmental story.
+1. Open Longitudinal Organoid Growth Tracking.
+2. Inspect the preview and confirm each organoid has measurements across multiple collection days.
+3. Read the trajectory plot to compare how growth velocity differs organoid by organoid.
+4. Use the slope summary to identify the fastest and slowest-growing members of the cohort.
+5. Add this panel to a board if you are building a developmental or screening narrative.
 
-**Result summary:** Tree 4 shows the steepest growth trend, while Tree 3 is the slowest-growing trajectory in the cohort.
+**Result summary:** The longitudinal traces make it clear that not all members of the cohort follow the same growth program: Tree 4 expands fastest while Tree 3 lags behind. The useful analytic trick is preserving subject-level trajectories and summarizing them with per-subject slopes instead of collapsing everything into one average curve.
 
 **Key metrics**
 
@@ -272,29 +273,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/07-repeated-growth-curves.png`
 
-### 08. Regression and Calibration
+### 08. Diameter-to-Volume Calibration Curve
 
-**Goal:** Fit a simple calibration-style relationship and show the uncertainty band.
+**Goal:** Fit a calibration relationship you could use to estimate tissue mass or volume from a bench measurement.
 
 **Analysis:** Linear regression with 95% prediction band
 
 **Data files:** data/raw/trees.csv
 
-**Source:** trees from the R datasets collection.
+**Source:** trees from the R datasets collection, framed here as an imaging-to-volume calibration proxy.
 
-**What to notice:** Prism users often pick the tool because regression results and the fitted graphic arrive together without friction.
+**What to notice:** Assay teams often need a calibration figure that is statistically explicit and still clean enough to live in a methods section.
 
 ![Screenshot](/assets/screenshots/08-regression-and-calibration.png)
 
 **Step-by-step**
 
-1. Open Regression and Calibration.
-2. Inspect the input columns and make sure the predictor is on the x-axis and the response on the y-axis.
-3. Review the regression line and the 95% prediction band.
-4. Read the slope, R-squared, and prediction summary.
-5. Use the exported SVG if you need to polish labels further for a manuscript.
+1. Open Diameter-to-Volume Calibration Curve.
+2. Inspect the input columns and confirm the physical measurement sits on the x-axis and the calibrated readout on the y-axis.
+3. Review the fitted line and uncertainty band to see whether the relationship is tight enough for use.
+4. Read the slope, R-squared, and interval summary in the result card.
+5. Export the SVG if you want a clean calibration figure for methods or supplemental notes.
 
-**Result summary:** Tree volume rises by about 5.07 units per girth unit, with R-squared 0.935.
+**Result summary:** This calibration looks biologically usable because the response scales predictably with the bench-side measurement, supporting future estimation from a simple surrogate readout. The fitted slope of 5.07 and R-squared of 0.935 quantify how strong that relationship is, while the confidence band shows where prediction uncertainty remains.
 
 **Key metrics**
 
@@ -308,29 +309,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/08-regression-and-calibration.png`
 
-### 09. Correlation Screen
+### 09. Microscopy Feature Correlation Screen
 
-**Goal:** Quickly screen relationships across several numeric features.
+**Goal:** Quickly screen relationships across multiple morphology features before deeper modeling.
 
 **Analysis:** Pearson correlation heatmap
 
 **Data files:** data/raw/iris.csv
 
-**Source:** iris from the R datasets collection.
+**Source:** iris from the R datasets collection, framed here as a single-cell morphology feature-screen proxy.
 
-**What to notice:** This is the kind of multivariate glance people like because it is informative in seconds and visually neat enough to share.
+**What to notice:** This is a practical phenotyping move: find which readouts travel together before choosing a reduced panel for follow-up experiments.
 
 ![Screenshot](/assets/screenshots/09-correlation-screen.png)
 
 **Step-by-step**
 
-1. Open Correlation Screen.
-2. Inspect the feature preview and note that the species label is excluded from the correlation matrix.
-3. Read the heatmap first to spot the strongest positive and negative relationships.
-4. Use the metric card to identify the top correlation pair.
+1. Open Microscopy Feature Correlation Screen.
+2. Inspect the feature preview and note that the phenotype label is excluded from the correlation matrix.
+3. Read the heatmap first to spot which morphology measurements move together most strongly.
+4. Use the metric card to identify the top feature pair for follow-up review.
 5. Export the heatmap when you need a compact exploratory panel for collaborators.
 
-**Result summary:** The strongest relationship is between Petal.Length and Petal.Width with correlation 0.96.
+**Result summary:** The strongest morphology relationship is between Petal.Length and Petal.Width (r = 0.96), suggesting those measurements may be tracking overlapping biology. The Pearson correlation screen is the statistical shortcut here: it quickly tells you which features are likely redundant before you commit to a larger phenotyping panel.
 
 **Key metrics**
 
@@ -344,29 +345,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/09-correlation-screen.png`
 
-### 10. PCA Species Map
+### 10. Phenotype Separation PCA Map
 
-**Goal:** Reduce four measurements into two axes and show class separation.
+**Goal:** Compress multiple assay features into two axes and inspect how clearly biological states separate.
 
 **Analysis:** Principal component analysis
 
 **Data files:** data/raw/iris.csv
 
-**Source:** iris from the R datasets collection.
+**Source:** iris from the R datasets collection, framed here as a cell-state morphology PCA proxy.
 
-**What to notice:** Users often praise Prism when advanced-looking plots remain approachable. PCA is a good test of that principle.
+**What to notice:** PCA earns its keep when it shows whether treatment states or biological classes are visibly separable without needing a statistics lecture.
 
 ![Screenshot](/assets/screenshots/10-pca-species-map.png)
 
 **Step-by-step**
 
-1. Open PCA Species Map.
-2. Inspect the standardized feature list before computing PCA.
-3. Review the biplot-style scatter to see how the species separate across the first two components.
-4. Read the explained-variance card to understand how much of the structure is retained.
-5. Add the plot to a board if you need a compact dimensionality-reduction panel.
+1. Open Phenotype Separation PCA Map.
+2. Inspect the standardized feature list before computing the dimensionality reduction.
+3. Review the scatter plot to see whether the phenotypic classes separate along the first two components.
+4. Read the explained-variance card to judge how much structure is retained in the map.
+5. Add the panel to a board if you want a compact unsupervised phenotyping summary.
 
-**Result summary:** The first two principal components retain 95.8% of the variance and visibly separate the species.
+**Result summary:** The first two principal components retain 95.8% of the total variance and already separate the phenotypic classes, suggesting a compact feature space captures much of the underlying biology. PCA is the important trick in play because it compresses correlated measurements into orthogonal axes that are much easier to inspect visually.
 
 **Key metrics**
 
@@ -380,29 +381,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/10-pca-species-map.png`
 
-### 11. Distribution Comparison
+### 11. Cell-State Distribution Shift
 
-**Goal:** Compare full distributions, not just means, across three species.
+**Goal:** Compare full distributions, not just means, across three biological states.
 
 **Analysis:** Violin plot + one-way ANOVA
 
 **Data files:** data/raw/iris.csv
 
-**Source:** iris from the R datasets collection.
+**Source:** iris from the R datasets collection, framed here as a cell-state size-distribution proxy.
 
-**What to notice:** Polished distribution plots are part of Prism's charm, especially when they default to something more expressive than a bare bar chart.
+**What to notice:** Wet-lab teams reach for violin plots when they care about heterogeneity, tail behavior, and overlap, not just a single average per group.
 
 ![Screenshot](/assets/screenshots/11-distribution-comparison.png)
 
 **Step-by-step**
 
-1. Open Distribution Comparison.
-2. Review the species labels in the preview and confirm the measurement column is sepal length.
-3. Inspect the violin plot to understand shape, spread, and overlap.
-4. Read the ANOVA result card to decide whether the mean difference is large enough to formalize.
-5. Export the figure if you need a more modern alternative to a plain box plot.
+1. Open Cell-State Distribution Shift.
+2. Review the state labels in the preview and confirm which measurement column is being summarized.
+3. Inspect the violin plot to understand shape, spread, overlap, and tail behavior.
+4. Read the ANOVA result card to decide whether the mean difference is worth formalizing further.
+5. Export the figure if you need a more expressive alternative to a plain box plot.
 
-**Result summary:** Sepal length differs strongly by species (F 119.26, p < 0.001), and the violin view makes the distribution shape easy to see.
+**Result summary:** The biological states differ not only in mean sepal length but also in spread and distribution shape, which is exactly why the violin view is more informative than a bare bar chart. The one-way ANOVA formalizes the omnibus mean-difference question (F 119.26, p < 0.001), while the violin geometry keeps heterogeneity visible.
 
 **Key metrics**
 
@@ -416,29 +417,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/11-distribution-comparison.png`
 
-### 12. Enzyme Kinetics
+### 12. Enzyme Inhibition Kinetics Panel
 
-**Goal:** Fit enzyme-rate curves for treated and untreated conditions.
+**Goal:** Fit Michaelis-Menten curves for treated and untreated enzyme conditions.
 
 **Analysis:** Michaelis-Menten fitting
 
 **Data files:** data/raw/Puromycin.csv
 
-**Source:** Puromycin from the R datasets collection.
+**Source:** Puromycin from the R datasets collection, already close to a classic enzyme-kinetics assay example.
 
-**What to notice:** Nonlinear regression is one of Prism's signature strengths, so this use case is a must-win for the alternative.
+**What to notice:** This is a non-negotiable biomedical workflow: raw rates, nonlinear fits, and interpretable Km and Vmax estimates on one panel.
 
 ![Screenshot](/assets/screenshots/12-enzyme-kinetics.png)
 
 **Step-by-step**
 
-1. Open Enzyme Kinetics.
-2. Check the concentration and rate columns in the preview table.
-3. Inspect the fitted Michaelis-Menten curves over the raw points.
-4. Read the Vmax and Km estimates for each condition.
-5. Export the panel if you need a fast enzyme-kinetics figure for a slide or report.
+1. Open Enzyme Inhibition Kinetics Panel.
+2. Check the substrate-concentration and rate columns in the preview table.
+3. Inspect the fitted Michaelis-Menten curves over the raw points for both assay conditions.
+4. Read the Vmax and Km estimates and compare how the treated condition shifts the fit.
+5. Export the panel if you need a fast enzyme-kinetics figure for a deck, report, or manuscript.
 
-**Result summary:** Michaelis-Menten fitting separates the treated and untreated enzyme kinetics clearly, with distinct Vmax and Km estimates.
+**Result summary:** The treated and untreated curves separate in a way that suggests the intervention is changing catalytic behavior, not merely adding noise to the assay. Nonlinear Michaelis-Menten fitting is the crucial analytic step because it estimates Vmax and Km from the full curve shape rather than from a single substrate concentration.
 
 **Key metrics**
 
@@ -452,29 +453,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/12-enzyme-kinetics.png`
 
-### 13. Pharmacokinetic Exposure
+### 13. PK Exposure Profile After Dosing
 
-**Goal:** Track drug concentration over time and summarize exposure metrics.
+**Goal:** Track concentration over time and summarize exposure metrics for a small PK cohort.
 
 **Analysis:** Concentration-time summary + noncompartmental metrics
 
 **Data files:** data/raw/Theoph.csv
 
-**Source:** Theoph from the R datasets collection.
+**Source:** Theoph from the R datasets collection, framed here as a small-cohort pharmacokinetic assay example.
 
-**What to notice:** A Prism alternative needs credible PK workflows even when the math is relatively basic, because the audience often thinks in curves first.
+**What to notice:** Scientists expect this view to answer two questions immediately: what the curve looks like and whether exposure is changing enough to matter.
 
 ![Screenshot](/assets/screenshots/13-pharmacokinetics.png)
 
 **Step-by-step**
 
-1. Open Pharmacokinetic Exposure.
-2. Inspect the subject, time, and concentration columns in the preview.
-3. Review the concentration-time plot to see the shared peak-and-decay shape.
+1. Open PK Exposure Profile After Dosing.
+2. Inspect the subject, time, and concentration columns in the preview table.
+3. Review the concentration-time plot to see the shared peak-and-decay shape across the cohort.
 4. Read the automatic Cmax, Tmax, and AUC summary card.
-5. Export the figure or the metrics table for your PK review packet.
+5. Export the figure or metrics table for a PK review packet or translational update.
 
-**Result summary:** Across subjects, mean Cmax is 8.76 and mean AUC is 103.81, with the expected peak-and-decay concentration pattern.
+**Result summary:** The cohort shows the classic absorption-to-elimination PK shape, and the average Cmax (8.76) and AUC (103.81) together summarize both peak exposure and total drug burden. The key statistical choice is to use simple noncompartmental metrics, which keeps the interpretation practical for early translational review without forcing a heavier compartment model.
 
 **Key metrics**
 
@@ -488,29 +489,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/13-pharmacokinetics.png`
 
-### 14. Drug Elimination Half-Life
+### 14. Terminal Elimination Half-Life Review
 
-**Goal:** Estimate elimination behavior from concentration decay data.
+**Goal:** Estimate terminal clearance behavior from concentration decay data.
 
 **Analysis:** Semi-log elimination fit
 
 **Data files:** data/raw/Indometh.csv
 
-**Source:** Indometh from the R datasets collection.
+**Source:** Indometh from the R datasets collection, framed here as a small-molecule clearance proxy.
 
-**What to notice:** This is a deliberately practical workflow: scientists care about the answer and the shape of the decay at the same time.
+**What to notice:** The semi-log panel is valuable because it lets reviewers judge whether the reported half-life is supported by the shape of the terminal phase.
 
 ![Screenshot](/assets/screenshots/14-drug-elimination.png)
 
 **Step-by-step**
 
-1. Open Drug Elimination Half-Life.
-2. Inspect the subject-level concentration-time table.
-3. Read the semi-log plot to confirm the terminal phase looks approximately linear on the log scale.
-4. Review the median half-life estimate and subject variability.
-5. Export the panel if you need a compact PK appendix figure.
+1. Open Terminal Elimination Half-Life Review.
+2. Inspect the subject-level concentration-time table before looking at the fit.
+3. Read the semi-log plot to confirm the terminal phase appears approximately linear on the log scale.
+4. Review the cohort half-life estimate and the subject-to-subject variability card.
+5. Export the panel if you need a compact clearance appendix figure.
 
-**Result summary:** The fitted terminal phase yields a median half-life of 1.66 time units across subjects.
+**Result summary:** The semi-log terminal phase suggests reasonably consistent clearance behavior across subjects, with a median half-life of 1.66 time units. The trick here is log-linear fitting of the terminal decline, which isolates elimination kinetics instead of mixing them with the absorption phase.
 
 **Key metrics**
 
@@ -524,29 +525,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/14-drug-elimination.png`
 
-### 15. Kaplan-Meier Survival Analysis
+### 15. Preclinical Survival Curve Comparison
 
-**Goal:** Compare survival curves across two groups and keep censoring visible.
+**Goal:** Compare survival across control and treatment cohorts while keeping censoring visible.
 
 **Analysis:** Kaplan-Meier + log-rank test
 
 **Data files:** data/raw/waltons.csv
 
-**Source:** waltons from the lifelines example datasets.
+**Source:** waltons from the lifelines example datasets, framed here as a therapy-versus-control survival proxy.
 
-**What to notice:** Survival workflows are one of the places where users especially value an opinionated, graph-first tool.
+**What to notice:** Kaplan-Meier plots are central in translational work because the figure itself often carries the biological story before anyone opens the statistics table.
 
 ![Screenshot](/assets/screenshots/15-survival-analysis.png)
 
 **Step-by-step**
 
-1. Open Kaplan-Meier Survival Analysis.
-2. Inspect the event-time preview and note the group assignment.
-3. Review the stepwise survival curves and at-risk behavior.
-4. Read the log-rank result card for the between-group comparison.
+1. Open Preclinical Survival Curve Comparison.
+2. Inspect the event-time preview and note the cohort assignment before looking at the curves.
+3. Review the stepwise survival traces and the at-risk behavior over time.
+4. Read the log-rank result card for the between-cohort comparison.
 5. Export the plot if you need a manuscript-ready survival panel.
 
-**Result summary:** The two survival curves separate clearly, with log-rank p < 0.001.
+**Result summary:** The survival curves separate enough to support a biologically meaningful difference in event timing between cohorts, and the log-rank test quantifies that full-curve separation at p < 0.001. Keeping censor marks visible matters because survival interpretation depends on who remains under observation, not just who has already had an event.
 
 **Key metrics**
 
@@ -560,29 +561,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/15-survival-analysis.png`
 
-### 16. Hazard Modeling
+### 16. Clinical Relapse Hazard Modeling
 
-**Goal:** Move from a survival curve to interpretable hazard ratios.
+**Goal:** Move from survival curves to interpretable hazard ratios across clinically meaningful covariates.
 
 **Analysis:** Cox proportional hazards model
 
 **Data files:** data/raw/rossi.csv
 
-**Source:** rossi from the lifelines example datasets.
+**Source:** rossi from the lifelines example datasets, framed here as a clinical relapse-risk modeling proxy.
 
-**What to notice:** Prism is loved for common analyses that stay readable. The Cox view should feel serious but never opaque.
+**What to notice:** Hazard-ratio views work best when they stay visual and legible for biologists who need the direction and scale of risk fast.
 
 ![Screenshot](/assets/screenshots/16-hazard-modeling.png)
 
 **Step-by-step**
 
-1. Open Hazard Modeling.
-2. Inspect the covariate preview to understand the available predictors.
-3. Review the ranked hazard-ratio chart to see the strongest associations.
+1. Open Clinical Relapse Hazard Modeling.
+2. Inspect the covariate preview to understand which clinical predictors are available to the model.
+3. Review the ranked hazard-ratio chart to see the strongest risk and protective associations.
 4. Read the model card for the top coefficients and confidence intervals.
-5. Use the result bundle if you want a quick model summary for collaborators.
+5. Use the result bundle if you want a fast model summary for collaborators or investigators.
 
-**Result summary:** Prior convictions, age, and parole-related covariates emerge as the most influential terms in the Cox model.
+**Result summary:** The Cox model ranks prior convictions, age, and parole-related covariates as the strongest hazard modifiers, giving investigators a prioritized view of relapse risk rather than a single average survival curve. The statistical trick is the proportional-hazards model itself, which turns time-to-event data into interpretable hazard ratios while preserving follow-up information.
 
 **Key metrics**
 
@@ -596,29 +597,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/16-hazard-modeling.png`
 
-### 17. Contingency Explorer
+### 17. Responder Frequency Contingency Map
 
-**Goal:** Compare survival rates by sex in the Titanic passenger data.
+**Goal:** Compare categorical outcome frequencies across cohort strata from an aggregated count table.
 
 **Analysis:** Chi-square test + normalized heatmap
 
 **Data files:** data/raw/Titanic.csv
 
-**Source:** Titanic from the R datasets collection.
+**Source:** Titanic from the R datasets collection, framed here as an aggregated cohort-outcome contingency proxy.
 
-**What to notice:** Users love when categorical summaries are both readable and visually polished, especially when counts come in aggregated form.
+**What to notice:** This is useful when assay or screening results arrive as summarized counts and you still need a clean figure plus a formal test.
 
 ![Screenshot](/assets/screenshots/17-contingency-explorer.png)
 
 **Step-by-step**
 
-1. Open Contingency Explorer.
-2. Inspect the aggregated count table and note that counts, not individual rows, drive the analysis.
-3. Review the heatmap to spot the asymmetry between women and men.
-4. Read the chi-square statistic and odds-style interpretation card.
-5. Export the panel if you need a compact categorical analysis figure.
+1. Open Responder Frequency Contingency Map.
+2. Inspect the aggregated count table and note that summarized frequencies, not individual records, drive the analysis.
+3. Review the heatmap to spot which strata are enriched or depleted for the responder outcome.
+4. Read the chi-square statistic and the odds-style interpretation card.
+5. Export the panel if you need a clean categorical summary for a screen review or supplement.
 
-**Result summary:** Sex and survival are strongly associated in the aggregated Titanic counts (chi-square 454.50, p < 0.001).
+**Result summary:** The contingency map shows a pronounced enrichment of the outcome in one cohort stratum versus the other, and the chi-square test on aggregated counts confirms that imbalance is unlikely to be sampling noise (chi-square 454.50, p < 0.001). The useful trick here is that summarized count tables can still yield a clean, valid categorical inference without reconstructing individual-level rows.
 
 **Key metrics**
 
@@ -632,29 +633,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/17-contingency-explorer.png`
 
-### 18. Logistic Risk Model
+### 18. Exposure-Associated Cancer Risk Model
 
-**Goal:** Model esophageal cancer risk from alcohol and tobacco categories.
+**Goal:** Model case-control risk across exposure bins and show interpretable odds ratios.
 
 **Analysis:** Logistic regression with odds-ratio view
 
 **Data files:** data/raw/esoph.csv
 
-**Source:** esoph from the R datasets collection.
+**Source:** esoph from the R datasets collection, already a biomedical case-control dataset.
 
-**What to notice:** This is the type of result that becomes much more trustworthy when the model output is paired with a clean, understandable visualization.
+**What to notice:** Odds-ratio plots land well with biomedical teams because they let you scan effect size and interval uncertainty without reading raw coefficients.
 
 ![Screenshot](/assets/screenshots/18-logistic-risk-model.png)
 
 **Step-by-step**
 
-1. Open Logistic Risk Model.
-2. Inspect the grouped case-control input table.
-3. Review the odds-ratio chart to see which exposure bins shift the risk most strongly.
-4. Read the model summary card and the confidence interval labels.
-5. Export the figure if you need a concise risk-factor slide.
+1. Open Exposure-Associated Cancer Risk Model.
+2. Inspect the grouped case-control input table and note the exposure bins before looking at the model.
+3. Review the odds-ratio chart to see which exposure ranges shift risk most strongly.
+4. Read the model summary card and the interval labels for the leading effects.
+5. Export the figure if you need a concise epidemiology or translational risk slide.
 
-**Result summary:** The fitted logistic model highlights several alcohol and tobacco categories with materially elevated odds ratios relative to baseline exposure groups.
+**Result summary:** The model points to alcohol and tobacco exposure bins with materially elevated odds of case status, which is the biological question investigators actually care about in exposure-associated cancer risk work. Logistic regression is doing the heavy lifting by converting grouped case-control counts into adjusted odds ratios and confidence intervals instead of leaving you with raw percentages alone.
 
 **Key metrics**
 
@@ -668,29 +669,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/18-logistic-risk-model.png`
 
-### 19. Outlier QC Review
+### 19. Assay Plate QC and Outlier Review
 
-**Goal:** Show how a QC workflow can stay visual without hiding the statistics.
+**Goal:** Run a transparent QC pass that flags outliers and missing values before downstream interpretation.
 
 **Analysis:** IQR outlier flagging + scatter and box plot
 
 **Data files:** data/raw/airquality.csv
 
-**Source:** airquality from the R datasets collection.
+**Source:** airquality from the R datasets collection, framed here as a plate-level assay QC proxy.
 
-**What to notice:** Polished QC views reduce arguments later because the data-cleaning logic is visible, not hidden in a script.
+**What to notice:** Good QC figures reduce argument later because the exclusion logic is visible, reproducible, and tied to the raw distribution.
 
 ![Screenshot](/assets/screenshots/19-outlier-qc-review.png)
 
 **Step-by-step**
 
-1. Open Outlier QC Review.
-2. Inspect the preview and note the missing values before looking at the outlier flags.
-3. Review the scatter plot and box plot together to understand both trend and spread.
-4. Read the QC card to see how many values were flagged by the IQR rule.
+1. Open Assay Plate QC and Outlier Review.
+2. Inspect the preview table and note missing values before looking at any outlier flags.
+3. Review the scatter and box plot together so both trend and spread remain visible.
+4. Read the QC card to see how many measurements were flagged by the IQR rule.
 5. Export the panel if you need an appendix figure documenting exclusions or review decisions.
 
-**Result summary:** The IQR rule flags 2 ozone values after removing rows with missing Ozone or Temperature.
+**Result summary:** This QC pass flags 2 ozone values after removing rows with missing inputs, giving the team a concrete set of measurements that could distort downstream conclusions. The IQR rule is intentionally simple and robust: it is a transparent nonparametric screen for unusual values that does not depend on assuming a normal distribution.
 
 **Key metrics**
 
@@ -704,29 +705,29 @@ This tutorial is intentionally hand-held. Every lesson uses real data, a real st
 
 **Figure asset:** `app/static/generated/charts/19-outlier-qc-review.png`
 
-### 20. Publication Figure Board
+### 20. Mechanism-of-Action Manuscript Board
 
-**Goal:** Combine several analyses into one clean, manuscript-style board.
+**Goal:** Assemble multiple assay readouts into a single submission-style figure board with a bench-science narrative.
 
 **Analysis:** Four-panel figure composition
 
 **Data files:** data/generated/two-group-supplement-comparison.csv, data/generated/factorial-experiment.csv, data/generated/enzyme-kinetics.csv, data/generated/survival-analysis.csv
 
-**Source:** Composite figure built from previously generated analysis panels.
+**Source:** Composite figure built from generated proxy assay panels spanning efficacy, interaction, kinetics, and survival.
 
-**What to notice:** This is where the product has to exceed Prism: excellent single figures are not enough if the final board still feels clumsy.
+**What to notice:** This is where the product has to feel like a serious publication tool: panel balance, labeling, and narrative flow should work before Illustrator ever opens.
 
 ![Screenshot](/assets/screenshots/20-publication-figure-board.png)
 
 **Step-by-step**
 
-1. Open Publication Figure Board.
-2. Review how the board combines comparison, factorial, nonlinear, and survival panels.
-3. Inspect the shared spacing, panel labels, and caption strip to see how the narrative hangs together.
-4. Use this as the final checkpoint before exporting a submission-ready multi-panel figure.
-5. Export the board as a high-resolution PNG for docs or as a source figure for later refinement.
+1. Open Mechanism-of-Action Manuscript Board.
+2. Review how the board combines efficacy, interaction, nonlinear-fit, and survival readouts into one story.
+3. Inspect the shared spacing, panel labels, and caption strip to see whether the narrative hangs together.
+4. Use this board as the final checkpoint before exporting a submission-ready multi-panel figure.
+5. Export the board as a vector source figure or a high-resolution raster for manuscript assembly.
 
-**Result summary:** The figure board combines comparison, factorial, nonlinear, and survival panels into one consistent manuscript-style composition.
+**Result summary:** The final board reads like a mechanism-of-action figure rather than a pile of unrelated plots: efficacy, interaction, kinetic, and survival evidence all support the same biological story. The trick here is compositional rather than inferential, using panel hierarchy, typography, and cross-panel alignment so reviewers can connect multiple analyses in one pass.
 
 **Key metrics**
 

@@ -7,16 +7,19 @@ The current implementation is a production-oriented product shell for a single s
 ### Runtime pieces
 
 - `scripts/build_examples.py`
-  - Loads real public datasets.
-  - Computes the twenty tutorial analyses.
-  - Generates workspace entities for projects, figure drafts, manuscripts, datasets, activity, and exports.
-  - Generates polished chart assets.
+  - Defines the twenty workflow specs and the default builder registry.
+  - Exposes `ManifestBuilder`, which prepares source datasets, applies tutorial overrides, builds each workflow, and assembles the manifest through injectable collaborators.
   - Writes `data/generated/use_cases.json`.
   - Writes the markdown training tutorial and use-case catalog.
+- `app/content.py`
+  - Defines the typed manifest snapshot and page-context models.
+  - Provides the file-backed repository with mtime-aware reloads for manifests and docs.
+  - Centralizes the allowlisted download policy for exported artifacts and tutorial files.
+  - Acts as the service boundary between raw generated data and Flask routes.
 - `app/__init__.py`
-  - Loads the generated manifest.
-  - Serves the Flask routes for the workspace, project, figure, dataset, manuscript, tutorial, and docs pages.
-  - Exposes dataset and document downloads.
+  - Hosts the Flask app factory.
+  - Serves the workspace, project, figure, dataset, manuscript, tutorial, and docs pages through the content service.
+  - Exposes only allowlisted downloads rather than repo-root file access.
 - `app/templates/*`
   - Render the SaaS-style user interface.
 - `app/static/generated/charts/*`
@@ -25,9 +28,9 @@ The current implementation is a production-oriented product shell for a single s
 ### Data flow
 
 1. Source datasets are stored in `data/raw/`.
-2. The generator processes those datasets into charts, summaries, preview tables, and workspace objects.
-3. The generator writes a canonical manifest JSON file.
-4. The Flask app reads that manifest and renders both the SaaS workspace and the tutorial library from it.
+2. `ManifestBuilder` prepares the offline-friendly source datasets and dispatches each use case through the registered feature builder.
+3. The builder registry returns workflow-specific outputs, which are packaged into publication assets and assembled into a canonical manifest JSON file.
+4. The Flask app reads that manifest through the repository/service layer and renders both the SaaS workspace and the tutorial library from it.
 5. Screenshots can then be captured from the real pages and referenced from the training docs.
 
 ## Why the generator matters
@@ -46,6 +49,13 @@ The generator is the source of truth for:
 
 That keeps the repo aligned. If a use case changes, the app and docs change together after one rebuild.
 
+## Current scalability seams
+
+- Feature replacement happens through the manifest builder's injected `builder_registry`, so a workflow can be swapped or added without changing route code.
+- Manifest and docs reads are mtime-aware, so regenerated content becomes visible without restarting the process.
+- Download access is isolated behind an allowlist, which limits exposure to generated artifacts instead of the whole repository.
+- The test suite now mixes full-stack smoke coverage with focused unit tests for the content layer and manifest-builder seams.
+
 ## Suggested production SaaS evolution
 
 If this prototype grows into a true multi-user service, the next architecture step should be:
@@ -63,4 +73,4 @@ If this prototype grows into a true multi-user service, the next architecture st
 - Preserve WYSIWYG export behavior.
 - Treat multi-panel composition as a first-class feature.
 - Keep analysis specs transparent enough to regenerate outside the GUI.
-- Maintain test coverage around the generator so the tutorial numbers stay trustworthy.
+- Maintain both seam-level tests and end-to-end generator coverage so feature swaps stay safe and the tutorial numbers remain trustworthy.

@@ -8,7 +8,7 @@ import re
 import shutil
 import textwrap
 import zipfile
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from collections import defaultdict
 from typing import Callable
@@ -818,7 +818,11 @@ def build_two_group_supplement(spec: UseCaseSpec) -> dict:
     subset_path = GENERATED_DIR / f"{spec.slug}.csv"
     low.to_csv(subset_path, index=False)
     return {
-        "summary": f"Low-dose OJ produced a mean tooth length {mean_diff:.2f} units higher than VC, with Welch t {t_stat:.2f} and p {fmt_p(p_value)}.",
+        "summary": (
+            f"At the low dose, the OJ formulation looks biologically more active than VC, improving mean tooth length by "
+            f"{mean_diff:.2f} units. Welch's t test is the right statistical move here because it stays reliable when group "
+            f"variances may differ, and the 95% confidence interval [{ci_low:.2f}, {ci_high:.2f}] keeps the likely size of the rescue effect visible alongside p {fmt_p(p_value)}."
+        ),
         "key_metrics": [
             f"OJ mean = {np.mean(oj):.2f}",
             f"VC mean = {np.mean(vc):.2f}",
@@ -859,7 +863,11 @@ def build_dose_response_overview(spec: UseCaseSpec) -> dict:
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
 
     return {
-        "summary": f"Dose explains a strong share of the growth variance (F {anova.loc['C(dose)', 'F']:.2f}, p {fmt_p(anova.loc['C(dose)', 'PR(>F)'])}).",
+        "summary": (
+            f"The dose-escalation pattern supports a biologically graded response rather than an isolated group difference: mean growth rises steadily across the three dose levels. "
+            f"A one-way ANOVA confirms that dose explains substantial response variance (F {anova.loc['C(dose)', 'F']:.2f}, p {fmt_p(anova.loc['C(dose)', 'PR(>F)'])}), "
+            f"and Tukey follow-up contrasts are what tell you which dose steps are really driving the signal."
+        ),
         "key_metrics": [
             f"Dose 0.5 mean = {means.loc[0.5]:.2f}",
             f"Dose 1.0 mean = {means.loc[1.0]:.2f}",
@@ -901,7 +909,11 @@ def build_grouped_mean_comparison(spec: UseCaseSpec) -> dict:
     add_result_badge(ax, f"Control {means.loc['ctrl']:.2f}\nTreatment 2 {means.loc['trt2']:.2f}", loc=(0.74, 0.98))
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     return {
-        "summary": f"Treatment groups differ overall (F {anova.loc['C(group)', 'F']:.2f}, p {fmt_p(anova.loc['C(group)', 'PR(>F)'])}), with Treatment 2 showing the highest mean weight.",
+        "summary": (
+            f"This reads like a hit-confirmation screen: Treatment 2 produces the strongest growth phenotype, while the overall arm-to-arm difference is supported by the omnibus ANOVA "
+            f"(F {anova.loc['C(group)', 'F']:.2f}, p {fmt_p(anova.loc['C(group)', 'PR(>F)'])}). The important statistical trick is using Tukey-adjusted pairwise follow-up "
+            f"after the omnibus test so the strongest arm is identified without over-reading raw mean separation alone."
+        ),
         "key_metrics": [
             f"Control mean = {means.loc['ctrl']:.2f}",
             f"Treatment 1 mean = {means.loc['trt1']:.2f}",
@@ -942,7 +954,10 @@ def build_factorial_experiment(spec: UseCaseSpec) -> dict:
     )
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     return {
-        "summary": "Tension dominates the response, while the wool-by-tension interaction is comparatively small in this classic factorial example.",
+        "summary": (
+            f"The main biological story is a strong tension effect, with much weaker evidence that the material-specific response meaningfully changes across tension states. "
+            f"Two-way ANOVA is doing the critical work here because it separates the main effects from the interaction term, letting the team ask whether the scaffold changes the biology itself or just the overall baseline."
+        ),
         "key_metrics": [
             f"Wool effect p = {fmt_p(anova.loc['C(wool)', 'PR(>F)'])}",
             f"Tension effect p = {fmt_p(anova.loc['C(tension)', 'PR(>F)'])}",
@@ -974,7 +989,10 @@ def build_paired_before_after(spec: UseCaseSpec) -> dict:
     add_result_badge(ax, f"Paired t {t_stat:.2f}\np {fmt_p(p_value)}\nMean diff {np.mean(diff):.2f}", loc=(0.74, 0.98))
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     return {
-        "summary": f"Subjects improved by {np.mean(diff):.2f} more units on average in group 2 than group 1, with paired t {t_stat:.2f} and p {fmt_p(p_value)}.",
+        "summary": (
+            f"The paired readout suggests a real within-subject neuroresponse after intervention, with subjects improving by {np.mean(diff):.2f} units on average in group 2 versus group 1. "
+            f"The key statistical trick is the paired t test: it uses each subject as their own control, which is biologically more faithful and usually more sensitive than pretending repeated observations are independent."
+        ),
         "key_metrics": [
             f"Mean group 1 = {np.mean(group1):.2f}",
             f"Mean group 2 = {np.mean(group2):.2f}",
@@ -1002,7 +1020,10 @@ def build_time_course_summary(spec: UseCaseSpec) -> dict:
     add_result_badge(ax, f"AUC {auc:.2f}\nFinal value {df['demand'].iloc[-1]:.1f}", loc=(0.76, 0.98))
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     return {
-        "summary": f"The BOD time course reaches {df['demand'].iloc[-1]:.1f} at the final timepoint, with an AUC of {auc:.2f}.",
+        "summary": (
+            f"The time course looks like a fast metabolic activation followed by a plateau, which is often the biological question in short functional assays. "
+            f"Reporting both the terminal value ({df['demand'].iloc[-1]:.1f}) and the integrated exposure-like summary AUC ({auc:.2f}) keeps the interpretation from depending on a single timepoint."
+        ),
         "key_metrics": [
             f"Baseline = {df['demand'].iloc[0]:.1f}",
             f"Final value = {df['demand'].iloc[-1]:.1f}",
@@ -1037,7 +1058,10 @@ def build_repeated_growth_curves(spec: UseCaseSpec) -> dict:
     add_result_badge(ax, f"Fastest slope: Tree {fastest}\nSlowest slope: Tree {slowest}", loc=(0.72, 0.98))
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     return {
-        "summary": f"Tree {fastest} shows the steepest growth trend, while Tree {slowest} is the slowest-growing trajectory in the cohort.",
+        "summary": (
+            f"The longitudinal traces make it clear that not all members of the cohort follow the same growth program: Tree {fastest} expands fastest while Tree {slowest} lags behind. "
+            f"The useful analytic trick is preserving subject-level trajectories and summarizing them with per-subject slopes instead of collapsing everything into one average curve."
+        ),
         "key_metrics": [
             f"Fastest slope = Tree {fastest} ({slopes[fastest]:.3f})",
             f"Slowest slope = Tree {slowest} ({slopes[slowest]:.3f})",
@@ -1066,7 +1090,10 @@ def build_regression_and_calibration(spec: UseCaseSpec) -> dict:
     add_result_badge(ax, f"Slope {model.params['Girth']:.2f}\nR² {model.rsquared:.3f}\np {fmt_p(model.pvalues['Girth'])}", loc=(0.73, 0.98))
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     return {
-        "summary": f"Tree volume rises by about {model.params['Girth']:.2f} units per girth unit, with R-squared {model.rsquared:.3f}.",
+        "summary": (
+            f"This calibration looks biologically usable because the response scales predictably with the bench-side measurement, supporting future estimation from a simple surrogate readout. "
+            f"The fitted slope of {model.params['Girth']:.2f} and R-squared of {model.rsquared:.3f} quantify how strong that relationship is, while the confidence band shows where prediction uncertainty remains."
+        ),
         "key_metrics": [
             f"Intercept = {model.params['Intercept']:.2f}",
             f"Slope = {model.params['Girth']:.2f}",
@@ -1112,7 +1139,10 @@ def build_correlation_screen(spec: UseCaseSpec) -> dict:
     fig.colorbar(im, ax=ax, shrink=0.82, fraction=0.046, pad=0.04)
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     return {
-        "summary": f"The strongest relationship is between {top_pair[0]} and {top_pair[1]} with correlation {top_value:.2f}.",
+        "summary": (
+            f"The strongest morphology relationship is between {top_pair[0]} and {top_pair[1]} (r = {top_value:.2f}), suggesting those measurements may be tracking overlapping biology. "
+            f"The Pearson correlation screen is the statistical shortcut here: it quickly tells you which features are likely redundant before you commit to a larger phenotyping panel."
+        ),
         "key_metrics": [
             f"Top pair = {top_pair[0]} vs {top_pair[1]}",
             f"Top correlation = {top_value:.2f}",
@@ -1147,7 +1177,10 @@ def build_pca_species_map(spec: UseCaseSpec) -> dict:
     ax.legend(loc="upper left")
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     return {
-        "summary": f"The first two principal components retain {(pca.explained_variance_ratio_[:2].sum() * 100):.1f}% of the variance and visibly separate the species.",
+        "summary": (
+            f"The first two principal components retain {(pca.explained_variance_ratio_[:2].sum() * 100):.1f}% of the total variance and already separate the phenotypic classes, "
+            f"suggesting a compact feature space captures much of the underlying biology. PCA is the important trick in play because it compresses correlated measurements into orthogonal axes that are much easier to inspect visually."
+        ),
         "key_metrics": [
             f"PC1 variance = {pca.explained_variance_ratio_[0] * 100:.1f}%",
             f"PC2 variance = {pca.explained_variance_ratio_[1] * 100:.1f}%",
@@ -1190,7 +1223,10 @@ def build_distribution_comparison(spec: UseCaseSpec) -> dict:
     add_result_badge(ax, f"ANOVA F {anova.loc['C(Species)', 'F']:.2f}\np {fmt_p(anova.loc['C(Species)', 'PR(>F)'])}", loc=(0.76, 0.98))
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     return {
-        "summary": f"Sepal length differs strongly by species (F {anova.loc['C(Species)', 'F']:.2f}, p {fmt_p(anova.loc['C(Species)', 'PR(>F)'])}), and the violin view makes the distribution shape easy to see.",
+        "summary": (
+            f"The biological states differ not only in mean sepal length but also in spread and distribution shape, which is exactly why the violin view is more informative than a bare bar chart. "
+            f"The one-way ANOVA formalizes the omnibus mean-difference question (F {anova.loc['C(Species)', 'F']:.2f}, p {fmt_p(anova.loc['C(Species)', 'PR(>F)'])}), while the violin geometry keeps heterogeneity visible."
+        ),
         "key_metrics": [
             f"Setosa mean = {violin_data[0].mean():.2f}",
             f"Versicolor mean = {violin_data[1].mean():.2f}",
@@ -1226,7 +1262,10 @@ def build_enzyme_kinetics(spec: UseCaseSpec) -> dict:
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     params_summary.sort(key=lambda item: item[0])
     return {
-        "summary": f"Michaelis-Menten fitting separates the treated and untreated enzyme kinetics clearly, with distinct Vmax and Km estimates.",
+        "summary": (
+            f"The treated and untreated curves separate in a way that suggests the intervention is changing catalytic behavior, not merely adding noise to the assay. "
+            f"Nonlinear Michaelis-Menten fitting is the crucial analytic step because it estimates Vmax and Km from the full curve shape rather than from a single substrate concentration."
+        ),
         "key_metrics": [
             f"{state} Vmax = {vmax:.2f}, Km = {km:.2f}" for state, vmax, km in params_summary
         ],
@@ -1260,7 +1299,10 @@ def build_pharmacokinetics(spec: UseCaseSpec) -> dict:
     avg_cmax = np.mean([item[1] for item in metrics])
     avg_auc = np.mean([item[3] for item in metrics])
     return {
-        "summary": f"Across subjects, mean Cmax is {avg_cmax:.2f} and mean AUC is {avg_auc:.2f}, with the expected peak-and-decay concentration pattern.",
+        "summary": (
+            f"The cohort shows the classic absorption-to-elimination PK shape, and the average Cmax ({avg_cmax:.2f}) and AUC ({avg_auc:.2f}) together summarize both peak exposure and total drug burden. "
+            f"The key statistical choice is to use simple noncompartmental metrics, which keeps the interpretation practical for early translational review without forcing a heavier compartment model."
+        ),
         "key_metrics": [
             f"Mean Cmax = {avg_cmax:.2f}",
             f"Mean AUC = {avg_auc:.2f}",
@@ -1297,7 +1339,10 @@ def build_drug_elimination(spec: UseCaseSpec) -> dict:
     add_result_badge(ax, f"Median half-life {np.median(half_lives):.2f}", loc=(0.76, 0.98))
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     return {
-        "summary": f"The fitted terminal phase yields a median half-life of {np.median(half_lives):.2f} time units across subjects.",
+        "summary": (
+            f"The semi-log terminal phase suggests reasonably consistent clearance behavior across subjects, with a median half-life of {np.median(half_lives):.2f} time units. "
+            f"The trick here is log-linear fitting of the terminal decline, which isolates elimination kinetics instead of mixing them with the absorption phase."
+        ),
         "key_metrics": [
             f"Median half-life = {np.median(half_lives):.2f}",
             f"Shortest half-life = {min(half_lives):.2f}",
@@ -1338,7 +1383,10 @@ def build_survival_analysis(spec: UseCaseSpec) -> dict:
         kmf.fit(subset["T"], subset["E"])
         medians.append((group, kmf.median_survival_time_))
     return {
-        "summary": f"The two survival curves separate clearly, with log-rank p {fmt_p(result.p_value)}.",
+        "summary": (
+            f"The survival curves separate enough to support a biologically meaningful difference in event timing between cohorts, and the log-rank test quantifies that full-curve separation at p {fmt_p(result.p_value)}. "
+            f"Keeping censor marks visible matters because survival interpretation depends on who remains under observation, not just who has already had an event."
+        ),
         "key_metrics": [
             f"{group} median survival = {median:.2f}" for group, median in medians
         ]
@@ -1374,7 +1422,10 @@ def build_hazard_modeling(spec: UseCaseSpec) -> dict:
     style_axis(ax, grid="x")
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     return {
-        "summary": f"Prior convictions, age, and parole-related covariates emerge as the most influential terms in the Cox model.",
+        "summary": (
+            f"The Cox model ranks prior convictions, age, and parole-related covariates as the strongest hazard modifiers, giving investigators a prioritized view of relapse risk rather than a single average survival curve. "
+            f"The statistical trick is the proportional-hazards model itself, which turns time-to-event data into interpretable hazard ratios while preserving follow-up information."
+        ),
         "key_metrics": [
             f"{idx}: HR {row['exp(coef)']:.2f} ({row['exp(coef) lower 95%']:.2f}-{row['exp(coef) upper 95%']:.2f})"
             for idx, row in top.iterrows()
@@ -1411,7 +1462,10 @@ def build_contingency_explorer(spec: UseCaseSpec) -> dict:
     fig.colorbar(im, ax=ax, shrink=0.85, fraction=0.05, pad=0.04)
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     return {
-        "summary": f"Sex and survival are strongly associated in the aggregated Titanic counts (chi-square {chi2:.2f}, p {fmt_p(p_value)}).",
+        "summary": (
+            f"The contingency map shows a pronounced enrichment of the outcome in one cohort stratum versus the other, and the chi-square test on aggregated counts confirms that imbalance is unlikely to be sampling noise "
+            f"(chi-square {chi2:.2f}, p {fmt_p(p_value)}). The useful trick here is that summarized count tables can still yield a clean, valid categorical inference without reconstructing individual-level rows."
+        ),
         "key_metrics": [
             f"Male survival share = {normalized.loc['Male', 'Yes']:.2f}",
             f"Female survival share = {normalized.loc['Female', 'Yes']:.2f}",
@@ -1451,7 +1505,10 @@ def build_logistic_risk_model(spec: UseCaseSpec) -> dict:
     style_axis(ax, grid="x")
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     return {
-        "summary": "The fitted logistic model highlights several alcohol and tobacco categories with materially elevated odds ratios relative to baseline exposure groups.",
+        "summary": (
+            f"The model points to alcohol and tobacco exposure bins with materially elevated odds of case status, which is the biological question investigators actually care about in exposure-associated cancer risk work. "
+            f"Logistic regression is doing the heavy lifting by converting grouped case-control counts into adjusted odds ratios and confidence intervals instead of leaving you with raw percentages alone."
+        ),
         "key_metrics": [
             f"{idx}: OR {odds.loc[idx]:.2f} ({conf.loc[idx, 0]:.2f}-{conf.loc[idx, 1]:.2f})" for idx in odds.index
         ],
@@ -1493,7 +1550,10 @@ def build_outlier_qc_review(spec: UseCaseSpec) -> dict:
     style_axis(axes[1], ylabel="Ozone", grid="y")
     chart = save_chart(fig, f"{spec.order:02d}-{spec.slug}.png")
     return {
-        "summary": f"The IQR rule flags {int(clean['flagged'].sum())} ozone values after removing rows with missing Ozone or Temperature.",
+        "summary": (
+            f"This QC pass flags {int(clean['flagged'].sum())} ozone values after removing rows with missing inputs, giving the team a concrete set of measurements that could distort downstream conclusions. "
+            f"The IQR rule is intentionally simple and robust: it is a transparent nonparametric screen for unusual values that does not depend on assuming a normal distribution."
+        ),
         "key_metrics": [
             f"Rows with missing data = {int(len(df) - len(clean))}",
             f"Flagged outliers = {int(clean['flagged'].sum())}",
@@ -1562,7 +1622,10 @@ def build_publication_figure_board(spec: UseCaseSpec) -> dict:
     )
     plt.close(fig)
     return {
-        "summary": "The figure board combines comparison, factorial, nonlinear, and survival panels into one consistent manuscript-style composition.",
+        "summary": (
+            f"The final board reads like a mechanism-of-action figure rather than a pile of unrelated plots: efficacy, interaction, kinetic, and survival evidence all support the same biological story. "
+            f"The trick here is compositional rather than inferential, using panel hierarchy, typography, and cross-panel alignment so reviewers can connect multiple analyses in one pass."
+        ),
         "key_metrics": [
             "Panel A: two-group comparison",
             "Panel B: factorial ANOVA interaction",
@@ -1597,6 +1660,270 @@ BUILDERS: dict[str, Callable[[UseCaseSpec], dict]] = {
     "build_logistic_risk_model": build_logistic_risk_model,
     "build_outlier_qc_review": build_outlier_qc_review,
     "build_publication_figure_board": build_publication_figure_board,
+}
+
+
+TUTORIAL_CONTEXT_OVERRIDES: dict[str, dict[str, object]] = {
+    "two-group-supplement-comparison": {
+        "title": "Low-Dose Mineralization Rescue Assay",
+        "goal": "Compare low-dose mineralization rescue between two supplement chemistries while keeping every animal visible.",
+        "steps": [
+            "Open Low-Dose Mineralization Rescue Assay from the Tutorial library.",
+            "Review the preview table and confirm the analysis is restricted to the 0.5 mg/day treatment arm in the preclinical cohort.",
+            "Inspect the raw-point efficacy plot before reading the test result so replicate spread stays visible.",
+            "Read the automatic Welch t test card and the 95% confidence interval for the treatment difference.",
+            "Export the figure as SVG or PNG for a lab meeting slide or a draft results section.",
+        ],
+        "what_to_notice": "Bench scientists trust this style of view because every replicate stays visible and the efficacy call is tied to a confidence interval, not a bar chart alone.",
+        "source_note": "ToothGrowth from the R datasets collection, framed here as a preclinical mineralization assay proxy.",
+    },
+    "dose-response-overview": {
+        "title": "Vitamin C Dose Escalation Response",
+        "goal": "Show how a preclinical growth readout shifts across three dose levels in a simple dose-escalation study.",
+        "steps": [
+            "Open Vitamin C Dose Escalation Response.",
+            "Confirm the input file contains the full cohort so all three treatment levels remain in the analysis.",
+            "Inspect the dose-wise raw-point summary plot to see whether the assay response rises monotonically.",
+            "Read the ANOVA result and the pairwise dose-comparison card to identify where the separation appears.",
+            "Use the publication export preset if you need a journal-ready raster or vector figure.",
+        ],
+        "what_to_notice": "This feels like a classic wet-lab potency check: replicate-level spread, monotonic dose behavior, and formal post-hoc comparisons in one view.",
+        "source_note": "ToothGrowth from the R datasets collection, framed here as a three-arm dose-escalation efficacy proxy.",
+    },
+    "grouped-mean-comparison": {
+        "title": "Three-Arm Compound Response Screen",
+        "goal": "Compare a control arm and two treated arms in a compact compound-response experiment.",
+        "steps": [
+            "Open Three-Arm Compound Response Screen from the Tutorial list.",
+            "Review the preview table and verify that each treatment arm contributes the same number of replicates.",
+            "Inspect the dot-and-summary chart before looking at p values so the replicate structure is clear.",
+            "Use the Tukey card to identify which treatment separates from the control condition.",
+            "Add the figure to a board if you want to combine this hit-confirmation panel with orthogonal assays.",
+        ],
+        "what_to_notice": "This is the kind of figure wet-lab teams drop into update decks because it shows every replicate and the follow-up pairwise call without clutter.",
+        "source_note": "PlantGrowth from the R datasets collection, framed here as a three-arm compound-response assay proxy.",
+    },
+    "factorial-experiment": {
+        "title": "Matrix-by-Tension Interaction Screen",
+        "goal": "Assess whether scaffold material and applied tension interact in a biomaterials stress assay.",
+        "steps": [
+            "Open Matrix-by-Tension Interaction Screen.",
+            "Inspect the grouped preview and note the two material classes and three mechanical settings.",
+            "Read the interaction plot first to understand whether the response curves stay parallel or diverge by condition.",
+            "Use the ANOVA panel to separate the material effect, the tension effect, and the interaction term.",
+            "Export the figure and the ANOVA summary if you need a methods-friendly interaction readout.",
+        ],
+        "what_to_notice": "Interaction plots matter in translational lab work because they separate a main effect from a context-dependent effect that changes with the assay condition.",
+        "source_note": "warpbreaks from the R datasets collection, framed here as a biomaterials tensile-stress assay proxy.",
+    },
+    "paired-before-after": {
+        "title": "Matched Before/After Neuroresponse Study",
+        "goal": "Measure within-subject change after intervention instead of pretending paired readouts are independent.",
+        "steps": [
+            "Open Matched Before/After Neuroresponse Study.",
+            "Verify from the preview that every subject contributes a baseline and a post-intervention readout.",
+            "Inspect the paired-lines plot to see whether the direction of change is consistent donor by donor.",
+            "Review the paired t test and the mean paired shift from baseline.",
+            "Use the notes area to record whether the change looks biologically meaningful, not merely non-zero.",
+        ],
+        "what_to_notice": "Paired plots are a wet-lab staple because they surface donor-to-donor heterogeneity before the statistical summary flattens it.",
+        "source_note": "sleep from the R datasets collection, framed here as a matched before-and-after neuropharmacology proxy.",
+    },
+    "time-course-summary": {
+        "title": "Cellular Oxygen Demand Time Course",
+        "goal": "Turn a short respirometry-style time course into a compact functional summary.",
+        "steps": [
+            "Open Cellular Oxygen Demand Time Course.",
+            "Inspect the input table and confirm the measurement times increase in the correct order.",
+            "Review the line chart to see how quickly the assay response approaches a plateau.",
+            "Read the AUC and terminal-value summary card for the compact kinetic interpretation.",
+            "Export the panel if you need a clean metabolism figure for a progress review or manuscript draft.",
+        ],
+        "what_to_notice": "This is the kind of metabolic assay panel people want quickly: kinetics, endpoint, and AUC in one publication-ready card.",
+        "source_note": "BOD from the R datasets collection, framed here as a cellular respirometry assay proxy.",
+    },
+    "repeated-growth-curves": {
+        "title": "Longitudinal Organoid Growth Tracking",
+        "goal": "Review repeated growth measurements while preserving each organoid trajectory.",
+        "steps": [
+            "Open Longitudinal Organoid Growth Tracking.",
+            "Inspect the preview and confirm each organoid has measurements across multiple collection days.",
+            "Read the trajectory plot to compare how growth velocity differs organoid by organoid.",
+            "Use the slope summary to identify the fastest and slowest-growing members of the cohort.",
+            "Add this panel to a board if you are building a developmental or screening narrative.",
+        ],
+        "what_to_notice": "Developmental and screening groups like this view because outlier trajectories and growth-rate differences stay visible instead of disappearing into a mean trace.",
+        "source_note": "Orange from the R datasets collection, framed here as a longitudinal organoid-growth assay proxy.",
+    },
+    "regression-and-calibration": {
+        "title": "Diameter-to-Volume Calibration Curve",
+        "goal": "Fit a calibration relationship you could use to estimate tissue mass or volume from a bench measurement.",
+        "steps": [
+            "Open Diameter-to-Volume Calibration Curve.",
+            "Inspect the input columns and confirm the physical measurement sits on the x-axis and the calibrated readout on the y-axis.",
+            "Review the fitted line and uncertainty band to see whether the relationship is tight enough for use.",
+            "Read the slope, R-squared, and interval summary in the result card.",
+            "Export the SVG if you want a clean calibration figure for methods or supplemental notes.",
+        ],
+        "what_to_notice": "Assay teams often need a calibration figure that is statistically explicit and still clean enough to live in a methods section.",
+        "source_note": "trees from the R datasets collection, framed here as an imaging-to-volume calibration proxy.",
+    },
+    "correlation-screen": {
+        "title": "Microscopy Feature Correlation Screen",
+        "goal": "Quickly screen relationships across multiple morphology features before deeper modeling.",
+        "steps": [
+            "Open Microscopy Feature Correlation Screen.",
+            "Inspect the feature preview and note that the phenotype label is excluded from the correlation matrix.",
+            "Read the heatmap first to spot which morphology measurements move together most strongly.",
+            "Use the metric card to identify the top feature pair for follow-up review.",
+            "Export the heatmap when you need a compact exploratory panel for collaborators.",
+        ],
+        "what_to_notice": "This is a practical phenotyping move: find which readouts travel together before choosing a reduced panel for follow-up experiments.",
+        "source_note": "iris from the R datasets collection, framed here as a single-cell morphology feature-screen proxy.",
+    },
+    "pca-species-map": {
+        "title": "Phenotype Separation PCA Map",
+        "goal": "Compress multiple assay features into two axes and inspect how clearly biological states separate.",
+        "steps": [
+            "Open Phenotype Separation PCA Map.",
+            "Inspect the standardized feature list before computing the dimensionality reduction.",
+            "Review the scatter plot to see whether the phenotypic classes separate along the first two components.",
+            "Read the explained-variance card to judge how much structure is retained in the map.",
+            "Add the panel to a board if you want a compact unsupervised phenotyping summary.",
+        ],
+        "what_to_notice": "PCA earns its keep when it shows whether treatment states or biological classes are visibly separable without needing a statistics lecture.",
+        "source_note": "iris from the R datasets collection, framed here as a cell-state morphology PCA proxy.",
+    },
+    "distribution-comparison": {
+        "title": "Cell-State Distribution Shift",
+        "goal": "Compare full distributions, not just means, across three biological states.",
+        "steps": [
+            "Open Cell-State Distribution Shift.",
+            "Review the state labels in the preview and confirm which measurement column is being summarized.",
+            "Inspect the violin plot to understand shape, spread, overlap, and tail behavior.",
+            "Read the ANOVA result card to decide whether the mean difference is worth formalizing further.",
+            "Export the figure if you need a more expressive alternative to a plain box plot.",
+        ],
+        "what_to_notice": "Wet-lab teams reach for violin plots when they care about heterogeneity, tail behavior, and overlap, not just a single average per group.",
+        "source_note": "iris from the R datasets collection, framed here as a cell-state size-distribution proxy.",
+    },
+    "enzyme-kinetics": {
+        "title": "Enzyme Inhibition Kinetics Panel",
+        "goal": "Fit Michaelis-Menten curves for treated and untreated enzyme conditions.",
+        "steps": [
+            "Open Enzyme Inhibition Kinetics Panel.",
+            "Check the substrate-concentration and rate columns in the preview table.",
+            "Inspect the fitted Michaelis-Menten curves over the raw points for both assay conditions.",
+            "Read the Vmax and Km estimates and compare how the treated condition shifts the fit.",
+            "Export the panel if you need a fast enzyme-kinetics figure for a deck, report, or manuscript.",
+        ],
+        "what_to_notice": "This is a non-negotiable biomedical workflow: raw rates, nonlinear fits, and interpretable Km and Vmax estimates on one panel.",
+        "source_note": "Puromycin from the R datasets collection, already close to a classic enzyme-kinetics assay example.",
+    },
+    "pharmacokinetics": {
+        "title": "PK Exposure Profile After Dosing",
+        "goal": "Track concentration over time and summarize exposure metrics for a small PK cohort.",
+        "steps": [
+            "Open PK Exposure Profile After Dosing.",
+            "Inspect the subject, time, and concentration columns in the preview table.",
+            "Review the concentration-time plot to see the shared peak-and-decay shape across the cohort.",
+            "Read the automatic Cmax, Tmax, and AUC summary card.",
+            "Export the figure or metrics table for a PK review packet or translational update.",
+        ],
+        "what_to_notice": "Scientists expect this view to answer two questions immediately: what the curve looks like and whether exposure is changing enough to matter.",
+        "source_note": "Theoph from the R datasets collection, framed here as a small-cohort pharmacokinetic assay example.",
+    },
+    "drug-elimination": {
+        "title": "Terminal Elimination Half-Life Review",
+        "goal": "Estimate terminal clearance behavior from concentration decay data.",
+        "steps": [
+            "Open Terminal Elimination Half-Life Review.",
+            "Inspect the subject-level concentration-time table before looking at the fit.",
+            "Read the semi-log plot to confirm the terminal phase appears approximately linear on the log scale.",
+            "Review the cohort half-life estimate and the subject-to-subject variability card.",
+            "Export the panel if you need a compact clearance appendix figure.",
+        ],
+        "what_to_notice": "The semi-log panel is valuable because it lets reviewers judge whether the reported half-life is supported by the shape of the terminal phase.",
+        "source_note": "Indometh from the R datasets collection, framed here as a small-molecule clearance proxy.",
+    },
+    "survival-analysis": {
+        "title": "Preclinical Survival Curve Comparison",
+        "goal": "Compare survival across control and treatment cohorts while keeping censoring visible.",
+        "steps": [
+            "Open Preclinical Survival Curve Comparison.",
+            "Inspect the event-time preview and note the cohort assignment before looking at the curves.",
+            "Review the stepwise survival traces and the at-risk behavior over time.",
+            "Read the log-rank result card for the between-cohort comparison.",
+            "Export the plot if you need a manuscript-ready survival panel.",
+        ],
+        "what_to_notice": "Kaplan-Meier plots are central in translational work because the figure itself often carries the biological story before anyone opens the statistics table.",
+        "source_note": "waltons from the lifelines example datasets, framed here as a therapy-versus-control survival proxy.",
+    },
+    "hazard-modeling": {
+        "title": "Clinical Relapse Hazard Modeling",
+        "goal": "Move from survival curves to interpretable hazard ratios across clinically meaningful covariates.",
+        "steps": [
+            "Open Clinical Relapse Hazard Modeling.",
+            "Inspect the covariate preview to understand which clinical predictors are available to the model.",
+            "Review the ranked hazard-ratio chart to see the strongest risk and protective associations.",
+            "Read the model card for the top coefficients and confidence intervals.",
+            "Use the result bundle if you want a fast model summary for collaborators or investigators.",
+        ],
+        "what_to_notice": "Hazard-ratio views work best when they stay visual and legible for biologists who need the direction and scale of risk fast.",
+        "source_note": "rossi from the lifelines example datasets, framed here as a clinical relapse-risk modeling proxy.",
+    },
+    "contingency-explorer": {
+        "title": "Responder Frequency Contingency Map",
+        "goal": "Compare categorical outcome frequencies across cohort strata from an aggregated count table.",
+        "steps": [
+            "Open Responder Frequency Contingency Map.",
+            "Inspect the aggregated count table and note that summarized frequencies, not individual records, drive the analysis.",
+            "Review the heatmap to spot which strata are enriched or depleted for the responder outcome.",
+            "Read the chi-square statistic and the odds-style interpretation card.",
+            "Export the panel if you need a clean categorical summary for a screen review or supplement.",
+        ],
+        "what_to_notice": "This is useful when assay or screening results arrive as summarized counts and you still need a clean figure plus a formal test.",
+        "source_note": "Titanic from the R datasets collection, framed here as an aggregated cohort-outcome contingency proxy.",
+    },
+    "logistic-risk-model": {
+        "title": "Exposure-Associated Cancer Risk Model",
+        "goal": "Model case-control risk across exposure bins and show interpretable odds ratios.",
+        "steps": [
+            "Open Exposure-Associated Cancer Risk Model.",
+            "Inspect the grouped case-control input table and note the exposure bins before looking at the model.",
+            "Review the odds-ratio chart to see which exposure ranges shift risk most strongly.",
+            "Read the model summary card and the interval labels for the leading effects.",
+            "Export the figure if you need a concise epidemiology or translational risk slide.",
+        ],
+        "what_to_notice": "Odds-ratio plots land well with biomedical teams because they let you scan effect size and interval uncertainty without reading raw coefficients.",
+        "source_note": "esoph from the R datasets collection, already a biomedical case-control dataset.",
+    },
+    "outlier-qc-review": {
+        "title": "Assay Plate QC and Outlier Review",
+        "goal": "Run a transparent QC pass that flags outliers and missing values before downstream interpretation.",
+        "steps": [
+            "Open Assay Plate QC and Outlier Review.",
+            "Inspect the preview table and note missing values before looking at any outlier flags.",
+            "Review the scatter and box plot together so both trend and spread remain visible.",
+            "Read the QC card to see how many measurements were flagged by the IQR rule.",
+            "Export the panel if you need an appendix figure documenting exclusions or review decisions.",
+        ],
+        "what_to_notice": "Good QC figures reduce argument later because the exclusion logic is visible, reproducible, and tied to the raw distribution.",
+        "source_note": "airquality from the R datasets collection, framed here as a plate-level assay QC proxy.",
+    },
+    "publication-figure-board": {
+        "title": "Mechanism-of-Action Manuscript Board",
+        "goal": "Assemble multiple assay readouts into a single submission-style figure board with a bench-science narrative.",
+        "steps": [
+            "Open Mechanism-of-Action Manuscript Board.",
+            "Review how the board combines efficacy, interaction, nonlinear-fit, and survival readouts into one story.",
+            "Inspect the shared spacing, panel labels, and caption strip to see whether the narrative hangs together.",
+            "Use this board as the final checkpoint before exporting a submission-ready multi-panel figure.",
+            "Export the board as a vector source figure or a high-resolution raster for manuscript assembly.",
+        ],
+        "what_to_notice": "This is where the product has to feel like a serious publication tool: panel balance, labeling, and narrative flow should work before Illustrator ever opens.",
+        "source_note": "Composite figure built from generated proxy assay panels spanning efficacy, interaction, kinetics, and survival.",
+    },
 }
 
 
@@ -2152,26 +2479,74 @@ def build_workspace_entities(use_cases: list[dict], datasets: list[dict]) -> dic
     }
 
 
-def generate_manifest() -> dict:
+DEFAULT_VENDOR_DATASETS: tuple[str, ...] = (
+    "ToothGrowth",
+    "PlantGrowth",
+    "sleep",
+    "warpbreaks",
+    "BOD",
+    "trees",
+    "iris",
+    "Puromycin",
+    "Titanic",
+    "esoph",
+    "airquality",
+)
+
+MANIFEST_SUMMARY = (
+    "A production-oriented GraphPad Prism alternative with a real workspace for projects, "
+    "datasets, manuscripts, exports, and a separate tutorial library framed around biomedical "
+    "wet-lab workflows."
+)
+
+
+def initialize_build_environment(dataset_vendors: tuple[str, ...] = DEFAULT_VENDOR_DATASETS) -> None:
     apply_style()
     ensure_dirs()
+    for dataset_name in dataset_vendors:
+        vendor_rdataset(dataset_name)
 
-    # Vendor the core R datasets used in the tutorial so the build stays offline-friendly.
-    vendor_rdataset("ToothGrowth")
-    vendor_rdataset("PlantGrowth")
-    vendor_rdataset("sleep")
-    vendor_rdataset("warpbreaks")
-    vendor_rdataset("BOD")
-    vendor_rdataset("trees")
-    vendor_rdataset("iris")
-    vendor_rdataset("Puromycin")
-    vendor_rdataset("Titanic")
-    vendor_rdataset("esoph")
-    vendor_rdataset("airquality")
 
-    use_cases = []
-    for spec in make_spec_list():
-        builder = BUILDERS[spec.builder]
+class ManifestBuilder:
+    def __init__(
+        self,
+        *,
+        specs: list[UseCaseSpec] | None = None,
+        builder_registry: dict[str, Callable[[UseCaseSpec], dict]] | None = None,
+        tutorial_overrides: dict[str, dict[str, object]] | None = None,
+        dataset_vendors: tuple[str, ...] = DEFAULT_VENDOR_DATASETS,
+        environment_preparer: Callable[[tuple[str, ...]], None] = initialize_build_environment,
+        publication_packager: Callable[[dict], dict] = build_publication_package,
+        dataset_library_builder: Callable[[list[dict]], list[dict]] = build_dataset_library,
+        workspace_builder: Callable[[list[dict], list[dict]], dict] = build_workspace_entities,
+        product_name: str = PRODUCT_NAME,
+        summary: str = MANIFEST_SUMMARY,
+    ) -> None:
+        self.specs = specs
+        self.builder_registry = builder_registry or BUILDERS
+        self.tutorial_overrides = tutorial_overrides or TUTORIAL_CONTEXT_OVERRIDES
+        self.dataset_vendors = dataset_vendors
+        self.environment_preparer = environment_preparer
+        self.publication_packager = publication_packager
+        self.dataset_library_builder = dataset_library_builder
+        self.workspace_builder = workspace_builder
+        self.product_name = product_name
+        self.summary = summary
+
+    def prepare(self) -> None:
+        self.environment_preparer(self.dataset_vendors)
+
+    def resolved_specs(self) -> list[UseCaseSpec]:
+        return self.specs or make_spec_list()
+
+    def build_use_case_item(self, spec: UseCaseSpec) -> dict:
+        overrides = self.tutorial_overrides.get(spec.slug)
+        if overrides:
+            spec = replace(spec, **overrides)
+        try:
+            builder = self.builder_registry[spec.builder]
+        except KeyError as exc:
+            raise KeyError(f"No builder registered for '{spec.builder}'") from exc
         built = builder(spec)
         item = {
             "order": spec.order,
@@ -2187,19 +2562,25 @@ def generate_manifest() -> dict:
             "screenshot_path": f"/assets/screenshots/{spec.order:02d}-{spec.slug}.png",
             **built,
         }
-        item.update(build_publication_package(item))
-        use_cases.append(item)
+        item.update(self.publication_packager(item))
+        return item
 
-    datasets = build_dataset_library(use_cases)
-    workspace = build_workspace_entities(use_cases, datasets)
+    def build_manifest(self) -> dict:
+        self.prepare()
+        use_cases = [self.build_use_case_item(spec) for spec in self.resolved_specs()]
+        datasets = self.dataset_library_builder(use_cases)
+        workspace = self.workspace_builder(use_cases, datasets)
+        return {
+            "product_name": self.product_name,
+            "generated_at": pd.Timestamp.utcnow().isoformat(),
+            "summary": self.summary,
+            "use_cases": use_cases,
+            "workspace": workspace,
+        }
 
-    manifest = {
-        "product_name": PRODUCT_NAME,
-        "generated_at": pd.Timestamp.utcnow().isoformat(),
-        "summary": "A production-oriented GraphPad Prism alternative with a real workspace for projects, datasets, manuscripts, exports, and a separate tutorial library.",
-        "use_cases": use_cases,
-        "workspace": workspace,
-    }
+
+def generate_manifest(builder: ManifestBuilder | None = None) -> dict:
+    manifest = (builder or ManifestBuilder()).build_manifest()
     write_json(GENERATED_DIR / "use_cases.json", manifest)
     return manifest
 
@@ -2209,21 +2590,22 @@ def generate_tutorial_markdown(manifest: dict) -> None:
         """
         # AssayAtlas Real-Data Training Tutorial
 
-        This tutorial is intentionally hand-held. Every lesson uses real data, a real statistical workflow, and a real output rendered by the AssayAtlas workspace.
+        This tutorial is intentionally hand-held. Every lesson uses a real public dataset, a real statistical workflow, and a biomedical wet-lab framing rendered through the AssayAtlas workspace.
 
         ## How to use this tutorial
 
         1. Start the app locally or open the deployed AssayAtlas home page.
         2. Open the Workspace or the Tutorial page.
         3. Work through the twenty use cases in order at least once.
-        4. Re-run the flows with the provided CSV files to internalize the patterns.
+        4. Re-run the flows with the provided CSV files to internalize the bench-science patterns.
 
         ## Training goals
 
         - Learn the SaaS navigation without friction.
         - See what publication-grade defaults should feel like.
-        - Practice the twenty most meaningful Prism-style workflows with transparent results.
+        - Practice twenty biomedical wet-lab workflows with transparent results and publication-ready figures.
         - Leave with exportable example figures and the raw input data for each lesson.
+        - See clearly when a workflow is built from a public proxy dataset versus a directly biomedical source.
         """
     ).strip()
 

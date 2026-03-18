@@ -1,1 +1,1 @@
-The BOD time course reaches 19.8 at the final timepoint, with an AUC of 92.65. Key quantitative outputs: Baseline = 8.3; Final value = 19.8; AUC = 92.65.
+The time course looks like a fast metabolic activation followed by a plateau, which is often the biological question in short functional assays. Reporting both the terminal value (19.8) and the integrated exposure-like summary AUC (92.65) keeps the interpretation from depending on a single timepoint. Key quantitative outputs: Baseline = 8.3; Final value = 19.8; AUC = 92.65.

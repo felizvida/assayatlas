@@ -137,10 +137,10 @@
 
   <section class="footer-actions">
     {% if previous_item %}
-      <a class="btn btn-secondary" href="{{ url_for('use_case', slug=previous_item['slug']) }}">Previous flow</a>
+      <a class="btn btn-secondary" href="{{ url_for('use_case', slug=previous_item.slug) }}">Previous flow</a>
     {% endif %}
     {% if next_item %}
-      <a class="btn btn-primary" href="{{ url_for('use_case', slug=next_item['slug']) }}">Next flow</a>
+      <a class="btn btn-primary" href="{{ url_for('use_case', slug=next_item.slug) }}">Next flow</a>
     {% else %}
       <a class="btn btn-primary" href="{{ url_for('tutorial') }}">Back to tutorial</a>
     {% endif %}

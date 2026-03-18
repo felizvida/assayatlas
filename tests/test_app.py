@@ -46,10 +46,22 @@ class AppRoutesTest(unittest.TestCase):
         finally:
             response.close()
 
+    def test_download_blocks_repo_internal_files(self) -> None:
+        response = self.client.get("/download/.git/config")
+        self.assertEqual(response.status_code, 404)
+
+    def test_download_allows_generated_manifest(self) -> None:
+        response = self.client.get("/download/data/generated/use_cases.json")
+        try:
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'"product_name"', response.data)
+        finally:
+            response.close()
+
     def test_use_case_renders(self) -> None:
         response = self.client.get("/use-cases/two-group-supplement-comparison")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Two-Group Supplement Comparison", response.data)
+        self.assertIn(b"Low-Dose Mineralization Rescue Assay", response.data)
         self.assertIn(b"Open Figure Draft", response.data)
 
     def test_project_route_renders(self) -> None:
@@ -73,7 +85,7 @@ class AppRoutesTest(unittest.TestCase):
     def test_figure_route_renders(self) -> None:
         response = self.client.get("/figures/publication-figure-board")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Publication Figure Board", response.data)
+        self.assertIn(b"Mechanism-of-Action Manuscript Board", response.data)
         self.assertIn(b"Open Tutorial Recipe", response.data)
 
     def test_healthz(self) -> None:
