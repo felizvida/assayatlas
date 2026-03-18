@@ -1,0 +1,1 @@
+Figure 20. Publication Figure Board. Combine several analyses into one clean, manuscript-style board. The figure board combines comparison, factorial, nonlinear, and survival panels into one consistent manuscript-style composition. Source data: Composite figure built from previously generated analysis panels.

@@ -1,0 +1,1 @@
+The strongest relationship is between Petal.Length and Petal.Width with correlation 0.96. Key quantitative outputs: Top pair = Petal.Length vs Petal.Width; Top correlation = 0.96; Lowest correlation = -0.43.

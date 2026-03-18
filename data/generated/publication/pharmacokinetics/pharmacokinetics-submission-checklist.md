@@ -1,0 +1,4 @@
+- Insert the SVG or PDF figure into the manuscript draft for editable vector quality.
+- Use the caption draft as the starting figure legend and trim it to the journal's style guide.
+- Attach the included source-data CSV files to your figure source-data or supplement package.
+- Use the TIFF or high-resolution PNG file if the submission portal requires a raster upload.

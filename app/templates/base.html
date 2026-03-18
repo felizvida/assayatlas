@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{ product_name }} turns assay results into publication-ready figures, manuscript text, and export bundles.">
+    <title>{% block title %}{{ product_name }}{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <div class="shell-gradient"></div>
+    <header class="topbar">
+      <a class="brand" href="{{ url_for('index') }}">
+        <span class="brand-mark">{{ brand_mark }}</span>
+        <span class="brand-copy">
+          <strong>{{ product_name }}</strong>
+          <small>Publication-first assay analytics SaaS</small>
+        </span>
+      </a>
+      <nav class="topnav">
+        <a href="{{ url_for('index') }}" class="{% if request.path == '/' %}is-active{% endif %}">Home</a>
+        <a href="{{ url_for('workspace') }}" class="{% if request.path.startswith('/workspace') or request.path.startswith('/projects') or request.path.startswith('/datasets') or request.path.startswith('/manuscripts') or request.path.startswith('/figures') %}is-active{% endif %}">Workspace</a>
+        <a href="{{ url_for('tutorial') }}" class="{% if request.path.startswith('/tutorial') or request.path.startswith('/use-cases') %}is-active{% endif %}">Tutorial</a>
+        <a href="{{ url_for('docs_page') }}" class="{% if request.path.startswith('/docs') %}is-active{% endif %}">Docs</a>
+      </nav>
+    </header>
+
+    <main class="page">
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

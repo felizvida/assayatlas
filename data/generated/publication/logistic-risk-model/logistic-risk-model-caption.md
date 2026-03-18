@@ -1,0 +1,1 @@
+Figure 18. Logistic Risk Model. Model esophageal cancer risk from alcohol and tobacco categories. The fitted logistic model highlights several alcohol and tobacco categories with materially elevated odds ratios relative to baseline exposure groups. Source data: esoph from the R datasets collection.

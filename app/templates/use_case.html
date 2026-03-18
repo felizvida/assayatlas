@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}{{ item.title }} | {{ product_name }}{% endblock %}
+{% block content %}
+  <section class="case-hero">
+    <div>
+      <div class="use-case-meta">
+        <span class="pill">{{ "%02d"|format(item.order) }}</span>
+        <span class="muted">{{ item.category }}</span>
+      </div>
+      <h1>{{ item.title }}</h1>
+      <p class="hero-text">{{ item.goal }}</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{{ url_for('figure_detail', slug=item.slug) }}">Open Figure Draft</a>
+        <a class="btn btn-secondary" href="{{ url_for('download', relative_path=item.publication_assets.bundle) }}">Download Manuscript Bundle</a>
+        <a class="btn btn-secondary" href="{{ url_for('download', relative_path=item.data_files[0]) }}">Download Input CSV</a>
+        <a class="btn btn-secondary" href="{{ url_for('docs_page', slug='training') }}">Open Training Guide</a>
+      </div>
+    </div>
+    <aside class="summary-panel">
+      <p class="eyebrow">What to notice</p>
+      <p>{{ item.what_to_notice }}</p>
+      <div class="summary-kicker">
+        <span>Analysis</span>
+        <strong>{{ item.analysis }}</strong>
+      </div>
+    </aside>
+  </section>
+
+  <section class="detail-grid">
+    <article class="detail-card chart-card">
+      <div class="card-heading">
+        <h2>Rendered result</h2>
+        <a class="text-link" href="{{ url_for('static', filename=item.chart_path) }}">Open raw figure asset</a>
+      </div>
+      <img class="chart-frame" src="{{ url_for('static', filename=item.chart_path) }}" alt="{{ item.title }} figure">
+      <p class="result-summary">{{ item.summary }}</p>
+    </article>
+
+    <article class="detail-card metric-card">
+      <div class="card-heading">
+        <h2>Result card</h2>
+        <span class="muted">{{ item.source_note }}</span>
+      </div>
+      <ul class="metric-list">
+        {% for metric in item.key_metrics %}
+          <li>{{ metric }}</li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <article class="detail-card">
+      <div class="card-heading">
+        <h2>Publication Export</h2>
+        <span class="muted">Drafting and submission pack</span>
+      </div>
+      <div class="export-grid">
+        <a class="btn btn-secondary" href="{{ url_for('download', relative_path=item.publication_assets.svg) }}">SVG</a>
+        <a class="btn btn-secondary" href="{{ url_for('download', relative_path=item.publication_assets.pdf) }}">PDF</a>
+        <a class="btn btn-secondary" href="{{ url_for('download', relative_path=item.publication_assets.png) }}">PNG</a>
+        <a class="btn btn-secondary" href="{{ url_for('download', relative_path=item.publication_assets.tiff) }}">TIFF</a>
+      </div>
+      <div class="export-grid export-grid-wide">
+        <a class="text-link" href="{{ url_for('download', relative_path=item.publication_assets.caption) }}">Caption draft</a>
+        <a class="text-link" href="{{ url_for('download', relative_path=item.publication_assets.methods) }}">Methods blurb</a>
+        <a class="text-link" href="{{ url_for('download', relative_path=item.publication_assets.results) }}">Results blurb</a>
+        <a class="text-link" href="{{ url_for('download', relative_path=item.publication_assets.checklist) }}">Submission checklist</a>
+      </div>
+      <ul class="metric-list compact">
+        {% for step in item.submission_checklist %}
+          <li>{{ step }}</li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <article class="detail-card">
+      <div class="card-heading">
+        <h2>Training steps</h2>
+        <span class="muted">Hand-held walkthrough</span>
+      </div>
+      <ol class="step-list">
+        {% for step in item.steps %}
+          <li>{{ step }}</li>
+        {% endfor %}
+      </ol>
+    </article>
+
+    <article class="detail-card">
+      <div class="card-heading">
+        <h2>Drafting Text</h2>
+        <span class="muted">Starting point for the manuscript</span>
+      </div>
+      <div class="text-block">
+        <h3>Figure legend</h3>
+        <p>{{ item.caption_text }}</p>
+      </div>
+      <div class="text-block">
+        <h3>Methods</h3>
+        <p>{{ item.methods_text }}</p>
+      </div>
+      <div class="text-block">
+        <h3>Results</h3>
+        <p>{{ item.results_text }}</p>
+      </div>
+    </article>
+
+    <article class="detail-card">
+      <div class="card-heading">
+        <h2>Input data preview</h2>
+        <span class="muted">First rows of the real dataset</span>
+      </div>
+      {% if item.data_preview %}
+        <div class="table-shell">
+          <table>
+            <thead>
+              <tr>
+                {% for key in item.data_preview[0].keys() %}
+                  <th>{{ key }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in item.data_preview %}
+                <tr>
+                  {% for value in row.values() %}
+                    <td>{{ value }}</td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="muted">This board combines outputs from several previously generated use cases rather than a single raw table.</p>
+      {% endif %}
+    </article>
+  </section>
+
+  <section class="footer-actions">
+    {% if previous_item %}
+      <a class="btn btn-secondary" href="{{ url_for('use_case', slug=previous_item['slug']) }}">Previous flow</a>
+    {% endif %}
+    {% if next_item %}
+      <a class="btn btn-primary" href="{{ url_for('use_case', slug=next_item['slug']) }}">Next flow</a>
+    {% else %}
+      <a class="btn btn-primary" href="{{ url_for('tutorial') }}">Back to tutorial</a>
+    {% endif %}
+  </section>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}{{ manuscript.title }} | {{ product_name }}{% endblock %}
+{% block content %}
+  <section class="case-hero">
+    <div>
+      <div class="use-case-meta">
+        <span class="status-pill status-{{ manuscript.tone }}">{{ manuscript.status }}</span>
+        <span class="muted">{{ manuscript.target_journal }}</span>
+      </div>
+      <h1>{{ manuscript.title }}</h1>
+      <p class="hero-text">{{ manuscript.narrative }}</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{{ url_for('project_detail', slug=project.slug) }}">Open Project</a>
+        <a class="btn btn-secondary" href="{{ url_for('docs_page', slug='publication') }}">Read Publication Workflow</a>
+        <a class="btn btn-secondary" href="{{ url_for('figure_detail', slug=manuscript.figures[0].slug) }}">Open Lead Figure</a>
+      </div>
+    </div>
+    <aside class="summary-panel">
+      <p class="eyebrow">Submission state</p>
+      <div class="summary-kicker">
+        <span>Project</span>
+        <strong>{{ manuscript.project_name }}</strong>
+      </div>
+      <div class="summary-kicker">
+        <span>Due</span>
+        <strong>{{ manuscript.due_date }}</strong>
+      </div>
+      <div class="summary-kicker">
+        <span>Preset</span>
+        <strong>{{ manuscript.submission_preset }}</strong>
+      </div>
+      <div class="summary-kicker">
+        <span>Figures</span>
+        <strong>{{ manuscript.figure_progress }}</strong>
+      </div>
+    </aside>
+  </section>
+
+  <section class="section-block workspace-columns">
+    <div class="workspace-card">
+      <div class="card-heading">
+        <h2>Section checklist</h2>
+        <span class="muted">Drafting readiness</span>
+      </div>
+      <div class="feed-list">
+        {% for section in manuscript.sections %}
+          <div class="feed-item feed-item-static">
+            <div>
+              <strong>{{ section.label }}</strong>
+              <p>Current state for this manuscript section.</p>
+            </div>
+            <span class="status-pill status-{{ 'success' if section.state == 'complete' else 'progress' if section.state in ['draft_ready', 'in_review'] else 'warning' }}">{{ section.state.replace('_', ' ') }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="workspace-card">
+      <div class="card-heading">
+        <h2>Deliverables</h2>
+        <span class="muted">Export discipline</span>
+      </div>
+      <div class="feed-list">
+        {% for item in manuscript.deliverables %}
+          <div class="feed-item feed-item-static">
+            <div>
+              <strong>{{ item.label }}</strong>
+              <p>Tracked as part of the submission packet.</p>
+            </div>
+            <span class="status-pill status-{{ 'success' if item.state == 'ready' else 'progress' if item.state == 'in_progress' else 'warning' }}">{{ item.state.replace('_', ' ') }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="section-block">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Figure Order</p>
+        <h2>Panels attached to this packet.</h2>
+      </div>
+    </div>
+    <div class="figure-grid">
+      {% for figure in manuscript.figures %}
+        <article class="figure-draft-card">
+          <img src="{{ url_for('static', filename=figure.chart_path) }}" alt="{{ figure.title }} figure">
+          <div class="project-card-top">
+            <span class="status-pill status-{{ figure.tone }}">{{ figure.status }}</span>
+            <span class="muted">{{ figure.version }}</span>
+          </div>
+          <h3><a href="{{ url_for('figure_detail', slug=figure.slug) }}">{{ figure.title }}</a></h3>
+          <p>{{ figure.next_action }}</p>
+          <div class="card-footer">
+            <div>
+              <span class="muted">Owner</span>
+              <strong>{{ figure.owner }}</strong>
+            </div>
+            <a class="text-link" href="{{ url_for('figure_detail', slug=figure.slug) }}">Open figure</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Docs | {{ product_name }}{% endblock %}
+{% block content %}
+  <section class="hero compact">
+    <div class="hero-copy">
+      <p class="eyebrow">Documentation</p>
+      <h1>Readable docs inside the product, not source-file downloads.</h1>
+      <p class="hero-text">
+        The docs center keeps training, publication guidance, architecture, and deployment notes in one consistent reading experience.
+      </p>
+    </div>
+    <aside class="hero-panel">
+      <div class="hero-panel-header">
+        <span>Selected</span>
+        <strong>{{ selected_doc.title }}</strong>
+      </div>
+      <p class="hero-text">{{ selected_doc.description }}</p>
+    </aside>
+  </section>
+
+  <section class="docs-layout">
+    <aside class="docs-sidebar">
+      {% for doc in doc_pages %}
+        <a class="docs-nav-card{% if doc.slug == selected_doc.slug %} docs-nav-card-active{% endif %}" href="{{ url_for('docs_page', slug=doc.slug) }}">
+          <strong>{{ doc.title }}</strong>
+          <span>{{ doc.description }}</span>
+        </a>
+      {% endfor %}
+    </aside>
+    <article class="docs-article">
+      <div class="docs-content">
+        {{ selected_doc.html }}
+      </div>
+    </article>
+  </section>
+{% endblock %}

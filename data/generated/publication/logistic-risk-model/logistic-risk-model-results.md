@@ -1,0 +1,1 @@
+The fitted logistic model highlights several alcohol and tobacco categories with materially elevated odds ratios relative to baseline exposure groups. Key quantitative outputs: C(agegp)[T.65-74]: OR 41.55 (5.57-309.97); C(agegp)[T.75+]: OR 39.72 (4.93-319.93); C(agegp)[T.55-64]: OR 28.74 (3.89-212.13).

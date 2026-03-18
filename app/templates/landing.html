@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}{{ product_name }}{% endblock %}
+{% block content %}
+  <section class="landing-hero">
+    <div class="hero-copy hero-copy-landing">
+      <p class="eyebrow">Scientific publishing workflow</p>
+      <h1>Turn experimental results into publication-ready figures and manuscript assets in one polished SaaS workflow.</h1>
+      <p class="hero-text">
+        {{ product_name }} combines guided statistics, figure-first analysis pages, and one-click manuscript bundles so researchers can move
+        from source data to draft-ready figures without bouncing between separate tools.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{{ url_for('workspace') }}">Open Workspace</a>
+        <a class="btn btn-secondary" href="{{ url_for('tutorial') }}">Start Tutorial</a>
+        <a class="btn btn-secondary" href="{{ url_for('docs_page') }}">Read Docs</a>
+      </div>
+      <div class="proof-strip">
+        {% for value, label in hero_stats %}
+          <div class="proof-card">
+            <strong>{{ value }}</strong>
+            <span>{{ label }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <aside class="hero-visual">
+      <div class="visual-card visual-card-large">
+        <div class="visual-kicker">Figure board preview</div>
+        <img src="{{ url_for('static', filename='generated/charts/20-publication-figure-board.png') }}" alt="Publication board preview">
+      </div>
+      <div class="visual-card visual-card-small">
+        <div class="visual-kicker">Export bundle</div>
+        <ul class="mini-list">
+          <li>SVG and PDF for drafting</li>
+          <li>PNG and TIFF for submission</li>
+          <li>Caption, methods, and results text</li>
+          <li>Source-data files and checklist</li>
+        </ul>
+      </div>
+    </aside>
+  </section>
+
+  <section class="section-block">
+    <div class="section-heading">
+      <p class="eyebrow">Why it feels professional</p>
+      <h2>One product language across analysis, figures, docs, and publication export.</h2>
+    </div>
+    <div class="feature-grid">
+      {% for feature in feature_groups %}
+        <article class="feature-card">
+          <h3>{{ feature.title }}</h3>
+          <p>{{ feature.body }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="section-block two-up">
+    <div class="section-panel">
+      <p class="eyebrow">Publishing workflow</p>
+      <h2>Draft the manuscript the moment the figure is done.</h2>
+      <ol class="step-list step-list-tight">
+        {% for step in publication_steps %}
+          <li>{{ step }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+    <div class="section-panel">
+      <p class="eyebrow">Trust signals</p>
+      <h2>Real datasets, repeatable outputs, and guided scientific use cases.</h2>
+      <p class="hero-text">
+        Every workflow in the app is generated from actual data and shipped with the same export structure, so users see the same
+        interaction pattern across analysis pages, tutorial content, and manuscript preparation.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-secondary" href="{{ url_for('docs_page', slug='publication') }}">See Publication Workflow</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-block">
+    <div class="section-heading">
+      <p class="eyebrow">Featured workflows</p>
+      <h2>Representative experiences from the workspace.</h2>
+    </div>
+    <div class="card-grid card-grid-featured">
+      {% for item in featured_cases %}
+        <article class="use-case-card">
+          <div class="use-case-meta">
+            <span class="pill">{{ item.category }}</span>
+            <span class="muted">{{ item.analysis }}</span>
+          </div>
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.goal }}</p>
+          <img src="{{ url_for('static', filename=item.chart_path) }}" alt="{{ item.title }} chart">
+          <div class="card-footer">
+            <a class="text-link" href="{{ url_for('use_case', slug=item.slug) }}">Open figure page</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div>
+      <p class="eyebrow">Ready to explore</p>
+      <h2>Use the full workspace if you want every analysis card at once.</h2>
+    </div>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ url_for('workspace') }}">Enter Workspace</a>
+      <a class="btn btn-secondary" href="{{ url_for('tutorial') }}">Follow Tutorial</a>
+    </div>
+  </section>
+{% endblock %}

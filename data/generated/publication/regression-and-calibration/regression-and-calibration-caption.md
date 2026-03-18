@@ -1,0 +1,1 @@
+Figure 8. Regression and Calibration. Fit a simple calibration-style relationship and show the uncertainty band. Tree volume rises by about 5.07 units per girth unit, with R-squared 0.935. Source data: trees from the R datasets collection.

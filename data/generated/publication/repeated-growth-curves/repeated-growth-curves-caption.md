@@ -1,0 +1,1 @@
+Figure 7. Repeated Growth Curves. Review repeated measures without collapsing away subject identity. Tree 4 shows the steepest growth trend, while Tree 3 is the slowest-growing trajectory in the cohort. Source data: Orange from the R datasets collection.

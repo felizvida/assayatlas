@@ -1,0 +1,1 @@
+Figure 4. Factorial Experiment. Analyze a classic 2x3 factorial experiment with interaction effects. Tension dominates the response, while the wool-by-tension interaction is comparatively small in this classic factorial example. Source data: warpbreaks from the R datasets collection.

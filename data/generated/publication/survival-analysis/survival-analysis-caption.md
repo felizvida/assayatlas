@@ -1,0 +1,1 @@
+Figure 15. Kaplan-Meier Survival Analysis. Compare survival curves across two groups and keep censoring visible. The two survival curves separate clearly, with log-rank p < 0.001. Source data: waltons from the lifelines example datasets.

@@ -1,0 +1,1 @@
+Tension dominates the response, while the wool-by-tension interaction is comparatively small in this classic factorial example. Key quantitative outputs: Wool effect p = 0.058; Tension effect p = < 0.001; Interaction p = 0.021.

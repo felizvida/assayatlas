@@ -1,0 +1,1 @@
+Sex and survival are strongly associated in the aggregated Titanic counts (chi-square 454.50, p < 0.001). Key quantitative outputs: Male survival share = 0.21; Female survival share = 0.73; Chi-square p = < 0.001.

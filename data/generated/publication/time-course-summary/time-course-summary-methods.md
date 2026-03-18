@@ -1,0 +1,1 @@
+Figure generated in AssayAtlas using the 'Area-under-the-curve summary + line plot' workflow. Source dataset(s): BOD.csv. The publication export includes SVG and PDF vector assets for manuscript drafting, plus high-resolution PNG and TIFF raster assets for submission systems that require raster uploads.

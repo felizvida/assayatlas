@@ -1,0 +1,1 @@
+Michaelis-Menten fitting separates the treated and untreated enzyme kinetics clearly, with distinct Vmax and Km estimates. Key quantitative outputs: treated Vmax = 212.68, Km = 0.06; untreated Vmax = 160.28, Km = 0.05.

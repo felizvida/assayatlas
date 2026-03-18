@@ -1,0 +1,1 @@
+Prior convictions, age, and parole-related covariates emerge as the most influential terms in the Cox model. Key quantitative outputs: race: HR 1.37 (0.75-2.50); prio: HR 1.10 (1.04-1.16); age: HR 0.94 (0.90-0.99).

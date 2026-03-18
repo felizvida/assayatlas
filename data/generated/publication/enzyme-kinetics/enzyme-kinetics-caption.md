@@ -1,0 +1,1 @@
+Figure 12. Enzyme Kinetics. Fit enzyme-rate curves for treated and untreated conditions. Michaelis-Menten fitting separates the treated and untreated enzyme kinetics clearly, with distinct Vmax and Km estimates. Source data: Puromycin from the R datasets collection.

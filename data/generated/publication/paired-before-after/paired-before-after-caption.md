@@ -1,0 +1,1 @@
+Figure 5. Paired Before-and-After Study. Show within-subject change instead of treating repeated observations as independent. Subjects improved by 1.58 more units on average in group 2 than group 1, with paired t 4.06 and p 0.003. Source data: sleep from the R datasets collection.

@@ -1,0 +1,1 @@
+Tree 4 shows the steepest growth trend, while Tree 3 is the slowest-growing trajectory in the cohort. Key quantitative outputs: Fastest slope = Tree 4 (0.135); Slowest slope = Tree 3 (0.081); Median circumference = 115.0.

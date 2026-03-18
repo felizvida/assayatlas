@@ -1,0 +1,1 @@
+Figure 10. PCA Species Map. Reduce four measurements into two axes and show class separation. The first two principal components retain 95.8% of the variance and visibly separate the species. Source data: iris from the R datasets collection.

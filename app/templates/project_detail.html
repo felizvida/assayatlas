@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} | {{ product_name }}{% endblock %}
+{% block content %}
+  <section class="case-hero">
+    <div>
+      <div class="use-case-meta">
+        <span class="status-pill status-{{ project.tone }}">{{ project.status }}</span>
+        <span class="muted">{{ project.target_journal }}</span>
+      </div>
+      <h1>{{ project.name }}</h1>
+      <p class="hero-text">{{ project.summary }}</p>
+      <div class="hero-actions">
+        {% if manuscript %}
+          <a class="btn btn-primary" href="{{ url_for('manuscript_detail', slug=manuscript.slug) }}">Open Manuscript Packet</a>
+        {% endif %}
+        <a class="btn btn-secondary" href="{{ url_for('figure_detail', slug=project.primary_figure_slug) }}">Review Primary Figure</a>
+        {% if project.datasets %}
+          <a class="btn btn-secondary" href="{{ url_for('dataset_detail', slug=project.datasets[0].slug) }}">Open Lead Dataset</a>
+        {% endif %}
+      </div>
+    </div>
+    <aside class="summary-panel">
+      <p class="eyebrow">Project snapshot</p>
+      <div class="summary-kicker">
+        <span>Owner</span>
+        <strong>{{ project.owner }}</strong>
+      </div>
+      <div class="summary-kicker">
+        <span>Due</span>
+        <strong>{{ project.due_date }}</strong>
+      </div>
+      <div class="summary-kicker">
+        <span>Preset</span>
+        <strong>{{ project.export_preset }}</strong>
+      </div>
+      <div class="summary-kicker">
+        <span>Next review</span>
+        <strong>{{ project.next_review }}</strong>
+      </div>
+    </aside>
+  </section>
+
+  <section class="dashboard-metrics">
+    <article class="metric-slab">
+      <strong>{{ project.completion }}%</strong>
+      <span>project completion</span>
+    </article>
+    <article class="metric-slab">
+      <strong>{{ project.figure_count }}</strong>
+      <span>linked figure drafts</span>
+    </article>
+    <article class="metric-slab">
+      <strong>{{ project.dataset_count }}</strong>
+      <span>connected datasets</span>
+    </article>
+    <article class="metric-slab">
+      <strong>{{ project.team|length }}</strong>
+      <span>active collaborators</span>
+    </article>
+  </section>
+
+  <section class="section-block">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Figure Workbench</p>
+        <h2>Drafts attached to this project.</h2>
+      </div>
+    </div>
+    <div class="figure-grid">
+      {% for figure in project.figures %}
+        <article class="figure-draft-card">
+          <img src="{{ url_for('static', filename=figure.chart_path) }}" alt="{{ figure.title }} figure">
+          <div class="project-card-top">
+            <span class="status-pill status-{{ figure.tone }}">{{ figure.status }}</span>
+            <span class="muted">{{ figure.version }}</span>
+          </div>
+          <h3><a href="{{ url_for('figure_detail', slug=figure.slug) }}">{{ figure.title }}</a></h3>
+          <p>{{ figure.next_action }}</p>
+          <div class="card-footer">
+            <div>
+              <span class="muted">Owner</span>
+              <strong>{{ figure.owner }}</strong>
+            </div>
+            <a class="text-link" href="{{ url_for('figure_detail', slug=figure.slug) }}">Open draft</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="section-block workspace-columns">
+    <div class="workspace-card">
+      <div class="card-heading">
+        <h2>Datasets</h2>
+        <span class="muted">Reusable inputs</span>
+      </div>
+      <div class="feed-list">
+        {% for dataset in project.datasets %}
+          <a class="feed-item" href="{{ url_for('dataset_detail', slug=dataset.slug) }}">
+            <div>
+              <strong>{{ dataset.name }}</strong>
+              <p>{{ dataset.kind }} · {{ dataset.rows }} rows · {{ dataset.columns }} cols</p>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="workspace-card">
+      <div class="card-heading">
+        <h2>Milestones</h2>
+        <span class="muted">Operational state</span>
+      </div>
+      <ul class="metric-list">
+        {% for milestone in project.milestones %}
+          <li><span class="status-pill status-{{ 'success' if milestone.state == 'complete' else 'progress' if milestone.state == 'in_progress' else 'neutral' }}">{{ milestone.label }}</span></li>
+        {% endfor %}
+      </ul>
+      <div class="card-heading project-heading-spaced">
+        <h2>Next actions</h2>
+        <span class="muted">Shared tasks</span>
+      </div>
+      <ul class="metric-list compact">
+        {% for task in project.tasks %}
+          <li>{{ task }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section-block workspace-columns">
+    <div class="workspace-card">
+      <div class="card-heading">
+        <h2>Team</h2>
+        <span class="muted">Who is active</span>
+      </div>
+      <div class="team-directory">
+        {% for member in project.team %}
+          <div class="team-person">
+            <span class="avatar avatar-large">{{ member.initials }}</span>
+            <div>
+              <strong>{{ member.name }}</strong>
+              <p>{{ member.role }}</p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% if manuscript %}
+      <div class="workspace-card">
+        <div class="card-heading">
+          <h2>Linked manuscript packet</h2>
+          <span class="muted">{{ manuscript.status }}</span>
+        </div>
+        <p>{{ manuscript.narrative }}</p>
+        <div class="card-footer">
+          <div>
+            <span class="muted">Preset</span>
+            <strong>{{ manuscript.submission_preset }}</strong>
+          </div>
+          <a class="text-link" href="{{ url_for('manuscript_detail', slug=manuscript.slug) }}">Open manuscript</a>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

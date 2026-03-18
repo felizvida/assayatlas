@@ -1,0 +1,1 @@
+Figure 16. Hazard Modeling. Move from a survival curve to interpretable hazard ratios. Prior convictions, age, and parole-related covariates emerge as the most influential terms in the Cox model. Source data: rossi from the lifelines example datasets.

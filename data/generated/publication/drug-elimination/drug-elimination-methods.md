@@ -1,0 +1,1 @@
+Figure generated in AssayAtlas using the 'Semi-log elimination fit' workflow. Source dataset(s): Indometh.csv. The publication export includes SVG and PDF vector assets for manuscript drafting, plus high-resolution PNG and TIFF raster assets for submission systems that require raster uploads.

@@ -1,0 +1,1 @@
+Figure 6. Time-Course Summary. Turn a small time-course table into a compact kinetic summary. The BOD time course reaches 19.8 at the final timepoint, with an AUC of 92.65. Source data: BOD from the R datasets collection.

@@ -1,0 +1,1 @@
+Subjects improved by 1.58 more units on average in group 2 than group 1, with paired t 4.06 and p 0.003. Key quantitative outputs: Mean group 1 = 0.75; Mean group 2 = 2.33; Mean paired difference = 1.58.

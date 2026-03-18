@@ -1,0 +1,1 @@
+Figure 1. Two-Group Supplement Comparison. Compare low-dose tooth growth by supplement and show every replicate. Low-dose OJ produced a mean tooth length 5.25 units higher than VC, with Welch t 3.17 and p 0.006. Source data: ToothGrowth from the R datasets collection.

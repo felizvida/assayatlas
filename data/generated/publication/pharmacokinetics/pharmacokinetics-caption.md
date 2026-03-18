@@ -1,0 +1,1 @@
+Figure 13. Pharmacokinetic Exposure. Track drug concentration over time and summarize exposure metrics. Across subjects, mean Cmax is 8.76 and mean AUC is 103.81, with the expected peak-and-decay concentration pattern. Source data: Theoph from the R datasets collection.

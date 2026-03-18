@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}{{ dataset.name }} | {{ product_name }}{% endblock %}
+{% block content %}
+  <section class="case-hero">
+    <div>
+      <div class="use-case-meta">
+        <span class="pill">{{ dataset.kind }}</span>
+        <span class="muted">{{ dataset.source }}</span>
+      </div>
+      <h1>{{ dataset.name }}</h1>
+      <p class="hero-text">{{ dataset.description }}</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{{ url_for('download', relative_path=dataset.path) }}">Download CSV</a>
+        {% if dataset.linked_projects %}
+          <a class="btn btn-secondary" href="{{ url_for('project_detail', slug=dataset.linked_projects[0].slug) }}">Open First Project</a>
+        {% endif %}
+      </div>
+    </div>
+    <aside class="summary-panel">
+      <p class="eyebrow">Dataset summary</p>
+      <div class="summary-kicker">
+        <span>Rows</span>
+        <strong>{{ dataset.rows }}</strong>
+      </div>
+      <div class="summary-kicker">
+        <span>Columns</span>
+        <strong>{{ dataset.columns }}</strong>
+      </div>
+      <div class="summary-kicker">
+        <span>Projects</span>
+        <strong>{{ dataset.project_count }}</strong>
+      </div>
+      <div class="summary-kicker">
+        <span>Figures</span>
+        <strong>{{ dataset.figure_count }}</strong>
+      </div>
+    </aside>
+  </section>
+
+  <section class="section-block workspace-columns">
+    <div class="workspace-card">
+      <div class="card-heading">
+        <h2>Preview</h2>
+        <span class="muted">{{ dataset.updated_at }}</span>
+      </div>
+      <div class="table-shell">
+        <table>
+          <thead>
+            <tr>
+              {% for key in dataset.preview[0].keys() %}
+                <th>{{ key }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in dataset.preview %}
+              <tr>
+                {% for value in row.values() %}
+                  <td>{{ value }}</td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="workspace-card">
+      <div class="card-heading">
+        <h2>Linked projects</h2>
+        <span class="muted">Workspace reuse</span>
+      </div>
+      <div class="feed-list">
+        {% for project in dataset.linked_projects %}
+          <a class="feed-item" href="{{ url_for('project_detail', slug=project.slug) }}">
+            <div>
+              <strong>{{ project.name }}</strong>
+              <p>Uses this dataset in an active project workspace.</p>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+      <div class="card-heading project-heading-spaced">
+        <h2>Linked figures</h2>
+        <span class="muted">Draft pages</span>
+      </div>
+      <div class="feed-list">
+        {% for figure in dataset.linked_figures %}
+          <a class="feed-item" href="{{ url_for('figure_detail', slug=figure.slug) }}">
+            <div>
+              <strong>{{ figure.title }}</strong>
+              <p>{{ figure.analysis }}</p>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

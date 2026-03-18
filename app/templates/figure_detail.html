@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}{{ figure.title }} | {{ product_name }}{% endblock %}
+{% block content %}
+  <section class="case-hero">
+    <div>
+      <div class="use-case-meta">
+        <span class="status-pill status-{{ figure.tone }}">{{ figure.status }}</span>
+        <span class="muted">{{ figure.project_name }}</span>
+      </div>
+      <h1>{{ figure.title }}</h1>
+      <p class="hero-text">{{ figure.summary }}</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{{ url_for('download', relative_path=figure.publication_assets.bundle) }}">Download Manuscript Bundle</a>
+        <a class="btn btn-secondary" href="{{ url_for('download', relative_path=figure.publication_assets.svg) }}">Download SVG</a>
+        <a class="btn btn-secondary" href="{{ url_for('project_detail', slug=project.slug) }}">Open Project</a>
+        <a class="btn btn-secondary" href="{{ url_for('use_case', slug=figure.slug) }}">Open Tutorial Recipe</a>
+      </div>
+    </div>
+    <aside class="summary-panel">
+      <p class="eyebrow">Figure draft</p>
+      <div class="summary-kicker">
+        <span>Version</span>
+        <strong>{{ figure.version }}</strong>
+      </div>
+      <div class="summary-kicker">
+        <span>Owner</span>
+        <strong>{{ figure.owner }}</strong>
+      </div>
+      {% if manuscript %}
+        <div class="summary-kicker">
+          <span>Manuscript</span>
+          <strong>{{ manuscript.title }}</strong>
+        </div>
+      {% endif %}
+      <div class="summary-kicker">
+        <span>Next action</span>
+        <strong>{{ figure.next_action }}</strong>
+      </div>
+    </aside>
+  </section>
+
+  <section class="detail-grid">
+    <article class="detail-card chart-card">
+      <div class="card-heading">
+        <h2>Rendered draft</h2>
+        <a class="text-link" href="{{ url_for('static', filename=figure.chart_path) }}">Open raw figure asset</a>
+      </div>
+      <img class="chart-frame" src="{{ url_for('static', filename=figure.chart_path) }}" alt="{{ figure.title }} figure">
+      <p class="result-summary">{{ figure.what_to_notice }}</p>
+    </article>
+
+    <article class="detail-card metric-card">
+      <div class="card-heading">
+        <h2>Result card</h2>
+        <span class="muted">{{ figure.analysis }}</span>
+      </div>
+      <ul class="metric-list">
+        {% for metric in figure.key_metrics %}
+          <li>{{ metric }}</li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <article class="detail-card">
+      <div class="card-heading">
+        <h2>Publication Export</h2>
+        <span class="muted">Drafting and submission pack</span>
+      </div>
+      <div class="export-grid">
+        <a class="btn btn-secondary" href="{{ url_for('download', relative_path=figure.publication_assets.svg) }}">SVG</a>
+        <a class="btn btn-secondary" href="{{ url_for('download', relative_path=figure.publication_assets.pdf) }}">PDF</a>
+        <a class="btn btn-secondary" href="{{ url_for('download', relative_path=figure.publication_assets.png) }}">PNG</a>
+        <a class="btn btn-secondary" href="{{ url_for('download', relative_path=figure.publication_assets.tiff) }}">TIFF</a>
+      </div>
+      <div class="export-grid export-grid-wide">
+        <a class="text-link" href="{{ url_for('download', relative_path=figure.publication_assets.caption) }}">Caption draft</a>
+        <a class="text-link" href="{{ url_for('download', relative_path=figure.publication_assets.methods) }}">Methods blurb</a>
+        <a class="text-link" href="{{ url_for('download', relative_path=figure.publication_assets.results) }}">Results blurb</a>
+        <a class="text-link" href="{{ url_for('download', relative_path=figure.publication_assets.checklist) }}">Submission checklist</a>
+      </div>
+    </article>
+
+    <article class="detail-card">
+      <div class="card-heading">
+        <h2>Project context</h2>
+        <span class="muted">{{ figure.project_name }}</span>
+      </div>
+      <ul class="metric-list compact">
+        <li>{{ figure.next_action }}</li>
+        <li>Source note: {{ figure.source_note }}</li>
+        {% if manuscript %}
+          <li>Attached to manuscript packet: {{ manuscript.title }}</li>
+        {% endif %}
+      </ul>
+      <div class="card-footer project-heading-spaced">
+        <a class="text-link" href="{{ url_for('project_detail', slug=project.slug) }}">Open project workspace</a>
+        {% if manuscript %}
+          <a class="text-link" href="{{ url_for('manuscript_detail', slug=manuscript.slug) }}">Open manuscript packet</a>
+        {% endif %}
+      </div>
+    </article>
+
+    <article class="detail-card">
+      <div class="card-heading">
+        <h2>Drafting Text</h2>
+        <span class="muted">Starting point for the manuscript</span>
+      </div>
+      <div class="text-block">
+        <h3>Figure legend</h3>
+        <p>{{ figure.caption_text }}</p>
+      </div>
+      <div class="text-block">
+        <h3>Methods</h3>
+        <p>{{ figure.methods_text }}</p>
+      </div>
+      <div class="text-block">
+        <h3>Results</h3>
+        <p>{{ figure.results_text }}</p>
+      </div>
+    </article>
+
+    <article class="detail-card">
+      <div class="card-heading">
+        <h2>Input data preview</h2>
+        <span class="muted">Linked source table</span>
+      </div>
+      {% if figure.data_preview %}
+        <div class="table-shell">
+          <table>
+            <thead>
+              <tr>
+                {% for key in figure.data_preview[0].keys() %}
+                  <th>{{ key }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in figure.data_preview %}
+                <tr>
+                  {% for value in row.values() %}
+                    <td>{{ value }}</td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="muted">This figure draws on multiple previously generated panels rather than a single raw table.</p>
+      {% endif %}
+    </article>
+  </section>
+{% endblock %}

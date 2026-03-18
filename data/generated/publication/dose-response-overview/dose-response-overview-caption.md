@@ -1,0 +1,1 @@
+Figure 2. Dose-Response Overview. Show how growth changes across three vitamin C dose levels. Dose explains a strong share of the growth variance (F 67.42, p < 0.001). Source data: ToothGrowth from the R datasets collection.

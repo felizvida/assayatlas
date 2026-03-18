@@ -1,0 +1,1 @@
+Figure 3. Grouped Mean Comparison. Compare plant weight across a control and two treatment groups. Treatment groups differ overall (F 4.85, p 0.016), with Treatment 2 showing the highest mean weight. Source data: PlantGrowth from the R datasets collection.

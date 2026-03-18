@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Workspace | {{ product_name }}{% endblock %}
+{% block content %}
+  <section class="hero compact workspace-hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Workspace</p>
+      <h1>Project command center for datasets, figure drafts, manuscript packets, and exports.</h1>
+      <p class="hero-text">
+        The tutorial library is separate. This workspace is for active scientific work: what is in review, what is manuscript-ready,
+        which datasets are linked, and which exports are blocked or ready.
+      </p>
+      <div class="hero-actions">
+        {% for action in workspace.quick_actions %}
+          <a class="btn btn-{{ action.variant }}" href="{{ action.path }}">{{ action.label }}</a>
+        {% endfor %}
+      </div>
+    </div>
+    <aside class="hero-panel">
+      <div class="hero-panel-header">
+        <span>Priority inbox</span>
+        <strong>This week</strong>
+      </div>
+      <ul class="mini-list">
+        {% for task in workspace.pinned_tasks %}
+          <li><a class="text-link" href="{{ task.path }}">{{ task.label }}</a></li>
+        {% endfor %}
+      </ul>
+    </aside>
+  </section>
+
+  <section class="dashboard-metrics">
+    {% for metric in workspace.metrics %}
+      <article class="metric-slab">
+        <strong>{{ metric.value }}</strong>
+        <span>{{ metric.label }}</span>
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="section-block" id="projects">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Projects</p>
+        <h2>Active workspaces, not tutorial cards.</h2>
+      </div>
+      <p class="section-copy">Each project tracks figures, datasets, manuscript state, and next-review actions in one place.</p>
+    </div>
+    <div class="project-grid">
+      {% for project in workspace.projects %}
+        <article class="project-card">
+          <div class="project-card-top">
+            <span class="status-pill status-{{ project.tone }}">{{ project.status }}</span>
+            <span class="muted">{{ project.target_journal }}</span>
+          </div>
+          <h3><a href="{{ url_for('project_detail', slug=project.slug) }}">{{ project.name }}</a></h3>
+          <p>{{ project.summary }}</p>
+          <img src="{{ url_for('static', filename=project.hero_chart_path) }}" alt="{{ project.name }} hero figure">
+          <div class="progress-track">
+            <span class="progress-bar" style="width: {{ project.completion }}%"></span>
+          </div>
+          <div class="project-meta-grid">
+            <div>
+              <span class="muted">Progress</span>
+              <strong>{{ project.completion }}%</strong>
+            </div>
+            <div>
+              <span class="muted">Figures</span>
+              <strong>{{ project.figure_count }}</strong>
+            </div>
+            <div>
+              <span class="muted">Datasets</span>
+              <strong>{{ project.dataset_count }}</strong>
+            </div>
+            <div>
+              <span class="muted">Next review</span>
+              <strong>{{ project.next_review }}</strong>
+            </div>
+          </div>
+          <div class="team-row">
+            {% for member in project.team %}
+              <span class="avatar" title="{{ member.name }} · {{ member.role }}">{{ member.initials }}</span>
+            {% endfor %}
+          </div>
+          <div class="card-footer">
+            <div>
+              <span class="muted">Due</span>
+              <strong>{{ project.due_date }}</strong>
+            </div>
+            <a class="text-link" href="{{ url_for('project_detail', slug=project.slug) }}">Open project</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="section-block workspace-columns" id="manuscripts">
+    <div>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Manuscripts</p>
+          <h2>Submission state is visible before export time.</h2>
+        </div>
+      </div>
+      <div class="manuscript-grid">
+        {% for manuscript in workspace.manuscripts %}
+          <article class="workspace-card manuscript-card">
+            <div class="project-card-top">
+              <span class="status-pill status-{{ manuscript.tone }}">{{ manuscript.status }}</span>
+              <span class="muted">{{ manuscript.target_journal }}</span>
+            </div>
+            <h3><a href="{{ url_for('manuscript_detail', slug=manuscript.slug) }}">{{ manuscript.title }}</a></h3>
+            <p>{{ manuscript.narrative }}</p>
+            <div class="manuscript-stat-row">
+              <div>
+                <span class="muted">Project</span>
+                <strong>{{ manuscript.project_name }}</strong>
+              </div>
+              <div>
+                <span class="muted">Figure state</span>
+                <strong>{{ manuscript.figure_progress }}</strong>
+              </div>
+            </div>
+            <div class="tag-row">
+              {% for section in manuscript.sections %}
+                <span class="pill pill-neutral">{{ section.label }}</span>
+              {% endfor %}
+            </div>
+            <div class="card-footer">
+              <div>
+                <span class="muted">Preset</span>
+                <strong>{{ manuscript.submission_preset }}</strong>
+              </div>
+              <a class="text-link" href="{{ url_for('manuscript_detail', slug=manuscript.slug) }}">Open packet</a>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+    <aside class="workspace-card">
+      <div class="card-heading">
+        <h2>Export Queue</h2>
+        <span class="muted">Delivery status</span>
+      </div>
+      <div class="feed-list">
+        {% for job in workspace.export_queue %}
+          <a class="feed-item" href="{{ job.path }}">
+            <div>
+              <strong>{{ job.title }}</strong>
+              <p>{{ job.detail }}</p>
+            </div>
+            <span class="status-pill status-{{ job.tone }}">{{ job.status }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </aside>
+  </section>
+
+  <section class="section-block" id="figures">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Figure Drafts</p>
+        <h2>Figures are first-class workspace objects.</h2>
+      </div>
+      <p class="section-copy">These draft pages keep project context, manuscript status, exports, and raw data together.</p>
+    </div>
+    <div class="figure-grid">
+      {% for figure in workspace.figure_drafts %}
+        <article class="figure-draft-card">
+          <img src="{{ url_for('static', filename=figure.chart_path) }}" alt="{{ figure.title }} figure">
+          <div class="project-card-top">
+            <span class="status-pill status-{{ figure.tone }}">{{ figure.status }}</span>
+            <span class="muted">{{ figure.version }}</span>
+          </div>
+          <h3><a href="{{ url_for('figure_detail', slug=figure.slug) }}">{{ figure.title }}</a></h3>
+          <p>{{ figure.summary }}</p>
+          <div class="card-footer">
+            <div>
+              <span class="muted">Project</span>
+              <strong>{{ figure.project_name }}</strong>
+            </div>
+            <a class="text-link" href="{{ url_for('figure_detail', slug=figure.slug) }}">Open draft</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="section-block workspace-columns" id="datasets">
+    <div>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Datasets</p>
+          <h2>Shared data library with linked projects and figure reuse.</h2>
+        </div>
+      </div>
+      <div class="dataset-grid">
+        {% for dataset in workspace.datasets %}
+          <article class="workspace-card dataset-card">
+            <div class="project-card-top">
+              <span class="pill">{{ dataset.kind }}</span>
+              <span class="muted">{{ dataset.rows }} rows · {{ dataset.columns }} cols</span>
+            </div>
+            <h3><a href="{{ url_for('dataset_detail', slug=dataset.slug) }}">{{ dataset.name }}</a></h3>
+            <p>{{ dataset.description }}</p>
+            <div class="dataset-meta">
+              <div>
+                <span class="muted">Projects</span>
+                <strong>{{ dataset.project_count }}</strong>
+              </div>
+              <div>
+                <span class="muted">Figures</span>
+                <strong>{{ dataset.figure_count }}</strong>
+              </div>
+              <div>
+                <span class="muted">Updated</span>
+                <strong>{{ dataset.updated_at }}</strong>
+              </div>
+            </div>
+            <div class="card-footer">
+              <div>
+                <span class="muted">Source</span>
+                <strong>{{ dataset.source }}</strong>
+              </div>
+              <a class="text-link" href="{{ url_for('dataset_detail', slug=dataset.slug) }}">Open dataset</a>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+    <aside class="workspace-card">
+      <div class="card-heading">
+        <h2>Activity Feed</h2>
+        <span class="muted">Latest updates</span>
+      </div>
+      <div class="feed-list">
+        {% for item in workspace.activity_feed %}
+          <a class="feed-item" href="{{ item.path }}">
+            <div>
+              <strong>{{ item.title }}</strong>
+              <p>{{ item.kind }} · {{ item.meta }}</p>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </aside>
+  </section>
+
+  <section class="cta-band">
+    <div>
+      <p class="eyebrow">Tutorial Library</p>
+      <h2>{{ workspace.tutorial_library.count }} guided recipes still exist, but they now live in onboarding where they belong.</h2>
+      <p class="hero-text">{{ workspace.tutorial_library.summary }}</p>
+    </div>
+    <div class="hero-actions">
+      <a class="btn btn-secondary" href="{{ workspace.tutorial_library.path }}">Open Tutorial Library</a>
+    </div>
+  </section>
+{% endblock %}

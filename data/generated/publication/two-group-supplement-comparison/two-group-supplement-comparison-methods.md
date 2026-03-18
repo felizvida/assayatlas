@@ -1,0 +1,1 @@
+Figure generated in AssayAtlas using the 'Welch t test + raw-point estimation plot' workflow. Source dataset(s): ToothGrowth.csv. The publication export includes SVG and PDF vector assets for manuscript drafting, plus high-resolution PNG and TIFF raster assets for submission systems that require raster uploads.

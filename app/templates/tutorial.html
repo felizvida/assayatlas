@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Tutorial | {{ product_name }}{% endblock %}
+{% block content %}
+  <section class="hero compact">
+    <div class="hero-copy">
+      <p class="eyebrow">Training mode</p>
+      <h1>Step-by-step onboarding with real data and real outputs.</h1>
+      <p class="hero-text">
+        The tutorial is intentionally hand-held. Every lesson mirrors a Prism-style workflow and ends with a chart you can export as a full manuscript bundle.
+      </p>
+    </div>
+    <aside class="hero-panel">
+      <div class="hero-panel-header">
+        <span>Training resources</span>
+        <strong>Readable in-app docs</strong>
+      </div>
+      <div class="download-list">
+        <a class="text-link" href="{{ url_for('docs_page', slug='training') }}">Open training guide</a>
+        <a class="text-link" href="{{ url_for('docs_page', slug='publication') }}">Open publication workflow</a>
+        <a class="text-link" href="{{ url_for('download', relative_path='docs/tutorial/USE_CASE_CATALOG.md') }}">Use-case catalog</a>
+        <a class="text-link" href="{{ url_for('download', relative_path='data/generated/use_cases.json') }}">Generated manifest JSON</a>
+      </div>
+    </aside>
+  </section>
+
+  <section class="timeline">
+    {% for item in use_cases %}
+      <article class="timeline-item">
+        <div class="timeline-marker">{{ "%02d"|format(item.order) }}</div>
+        <div class="timeline-body">
+          <div class="use-case-meta">
+            <span class="pill">{{ item.category }}</span>
+            <span class="muted">{{ item.analysis }}</span>
+          </div>
+          <h3><a href="{{ url_for('use_case', slug=item.slug) }}">{{ item.title }}</a></h3>
+          <p>{{ item.goal }}</p>
+          <ol class="step-list">
+            {% for step in item.steps %}
+              <li>{{ step }}</li>
+            {% endfor %}
+          </ol>
+        </div>
+      </article>
+    {% endfor %}
+  </section>
+{% endblock %}

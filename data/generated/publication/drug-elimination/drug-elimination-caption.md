@@ -1,0 +1,1 @@
+Figure 14. Drug Elimination Half-Life. Estimate elimination behavior from concentration decay data. The fitted terminal phase yields a median half-life of 1.66 time units across subjects. Source data: Indometh from the R datasets collection.

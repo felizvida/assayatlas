@@ -1,0 +1,1 @@
+Figure 17. Contingency Explorer. Compare survival rates by sex in the Titanic passenger data. Sex and survival are strongly associated in the aggregated Titanic counts (chi-square 454.50, p < 0.001). Source data: Titanic from the R datasets collection.

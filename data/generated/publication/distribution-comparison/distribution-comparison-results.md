@@ -1,0 +1,1 @@
+Sepal length differs strongly by species (F 119.26, p < 0.001), and the violin view makes the distribution shape easy to see. Key quantitative outputs: Setosa mean = 5.01; Versicolor mean = 5.94; Virginica mean = 6.59.

@@ -1,0 +1,1 @@
+Figure 19. Outlier QC Review. Show how a QC workflow can stay visual without hiding the statistics. The IQR rule flags 2 ozone values after removing rows with missing Ozone or Temperature. Source data: airquality from the R datasets collection.

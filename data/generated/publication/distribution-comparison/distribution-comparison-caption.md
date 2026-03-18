@@ -1,0 +1,1 @@
+Figure 11. Distribution Comparison. Compare full distributions, not just means, across three species. Sepal length differs strongly by species (F 119.26, p < 0.001), and the violin view makes the distribution shape easy to see. Source data: iris from the R datasets collection.

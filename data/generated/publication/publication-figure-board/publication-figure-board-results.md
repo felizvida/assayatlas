@@ -1,0 +1,1 @@
+The figure board combines comparison, factorial, nonlinear, and survival panels into one consistent manuscript-style composition. Key quantitative outputs: Panel A: two-group comparison; Panel B: factorial ANOVA interaction; Panel C: enzyme kinetics fit.
