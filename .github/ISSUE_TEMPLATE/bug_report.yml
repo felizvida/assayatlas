@@ -1,0 +1,46 @@
+name: Bug report
+description: Report a reproducible problem in the app, generator, exports, or tutorial flow.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the exact steps, routes, or commands.
+      placeholder: |
+        1. Open /workspace
+        2. Click ...
+        3. Run ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Release tag or commit SHA if known.
+  - type: textarea
+    id: validation
+    attributes:
+      label: Logs, screenshots, or context
+      description: Include screenshots, stack traces, or export details if available.

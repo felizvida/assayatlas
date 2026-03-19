@@ -1,5 +1,8 @@
 # AssayAtlas
 
+[![Release](https://img.shields.io/github/v/release/felizvida/assayatlas)](https://github.com/felizvida/assayatlas/releases)
+[![License](https://img.shields.io/github/license/felizvida/assayatlas)](https://github.com/felizvida/assayatlas/blob/main/LICENSE)
+
 AssayAtlas is a production-oriented SaaS-style GraphPad Prism alternative built around one promise: publication-grade figures should be the default output, not the last mile.
 
 This repository ships a runnable product shell with:
@@ -48,6 +51,8 @@ Primary routes:
 - Publication workflow: `docs/PUBLICATION_WORKFLOW.md`
 - Architecture: `docs/ARCHITECTURE.md`
 - Deployment: `docs/DEPLOYMENT.md`
+- Contributing: `CONTRIBUTING.md`
+- Security policy: `SECURITY.md`
 
 ## Validate locally
 

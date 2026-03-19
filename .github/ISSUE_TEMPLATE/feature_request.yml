@@ -1,0 +1,37 @@
+name: Feature request
+description: Suggest a product, figure, workflow, or export improvement.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or opportunity
+      description: What user problem should AssayAtlas solve better?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the workflow, UI, or export behavior you want.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Workspace
+        - Figure rendering
+        - Tutorial
+        - Statistics workflow
+        - Publication export
+        - Docs
+        - Deployment
+  - type: textarea
+    id: success
+    attributes:
+      label: What success looks like
+      description: How would we know this is complete or better?
