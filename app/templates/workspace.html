@@ -136,22 +136,177 @@
         {% endfor %}
       </div>
     </div>
-    <aside class="workspace-card">
+    <aside class="workspace-card export-queue-panel" data-export-queue>
       <div class="card-heading">
-        <h2>Export Queue</h2>
-        <span class="muted">Delivery status</span>
+        <div>
+          <h2>Export Queue</h2>
+          <span class="muted">Delivery status</span>
+        </div>
+        <span class="pill pill-neutral">Live runtime</span>
       </div>
-      <div class="feed-list">
+      <p class="section-copy">
+        Queue new manuscript bundles and move export work through queued, in progress, blocked, or ready without leaving the workspace.
+      </p>
+      <form
+        class="editor-form export-create-form"
+        data-export-create-form
+        data-endpoint="{{ url_for('api_export_job_create') }}"
+      >
+        <div class="form-grid">
+          <label class="field-label">
+            <span>Job title</span>
+            <input class="field-input" type="text" name="title" value="" placeholder="Nature-ready TIFF package" required>
+          </label>
+          <label class="field-label">
+            <span>Target</span>
+            <select class="field-input" name="path" required>
+              <option value="" selected disabled>Select a workspace target</option>
+              <optgroup label="Figure drafts">
+                {% for figure in workspace.figure_drafts %}
+                  <option value="{{ url_for('figure_detail', slug=figure.slug) }}">Figure · {{ figure.title }}</option>
+                {% endfor %}
+              </optgroup>
+              <optgroup label="Manuscript packets">
+                {% for manuscript in workspace.manuscripts %}
+                  <option value="{{ url_for('manuscript_detail', slug=manuscript.slug) }}">Packet · {{ manuscript.title }}</option>
+                {% endfor %}
+              </optgroup>
+            </select>
+          </label>
+          <label class="field-label field-label-wide">
+            <span>Detail</span>
+            <input
+              class="field-input"
+              type="text"
+              name="detail"
+              value=""
+              placeholder="High-resolution TIFF plus clean SVG package for submission"
+              required
+            >
+          </label>
+          <label class="field-label">
+            <span>Status</span>
+            <select class="field-input" name="status" data-status-select>
+              <option value="Queued" selected>Queued</option>
+              <option value="Rendering">Rendering</option>
+              <option value="In progress">In progress</option>
+              <option value="Waiting on review">Waiting on review</option>
+              <option value="Blocked">Blocked</option>
+              <option value="Ready">Ready</option>
+            </select>
+          </label>
+          <label class="field-label">
+            <span>Tone</span>
+            <select class="field-input" name="tone" data-tone-select>
+              <option value="warning" selected>Warning</option>
+              <option value="progress">Progress</option>
+              <option value="neutral">Neutral</option>
+              <option value="success">Success</option>
+            </select>
+          </label>
+        </div>
+        <div class="editor-toolbar">
+          <p class="editor-status" data-export-create-status data-state="neutral">Ready to queue a new export job.</p>
+          <div class="hero-actions editor-actions">
+            <button class="btn btn-primary" type="submit">Queue New Export</button>
+            <button class="btn btn-secondary" type="reset">Reset Form</button>
+          </div>
+        </div>
+      </form>
+      <div class="feed-list export-job-list" data-export-job-list>
         {% for job in workspace.export_queue %}
-          <a class="feed-item" href="{{ job.path }}">
+          <article class="feed-item feed-item-static export-job-card" data-export-job-card data-job-key="{{ job.job_key }}">
             <div>
-              <strong>{{ job.title }}</strong>
-              <p>{{ job.detail }}</p>
+              <div class="feed-item-heading">
+                <strong><a class="text-link" data-export-job-link href="{{ job.path }}">{{ job.title }}</a></strong>
+                <span class="status-pill status-{{ job.tone }}" data-export-job-status>{{ job.status }}</span>
+              </div>
+              <p data-export-job-detail>{{ job.detail }}</p>
+              <form class="editor-form export-job-form" data-export-job-form data-endpoint="{{ url_for('api_export_job_update', job_key=job.job_key) }}">
+                <div class="form-grid form-grid-compact">
+                  <label class="field-label">
+                    <span>Status</span>
+                    <select class="field-input" name="status" data-status-select>
+                      <option value="Queued" {% if job.status == "Queued" %}selected{% endif %}>Queued</option>
+                      <option value="Rendering" {% if job.status == "Rendering" %}selected{% endif %}>Rendering</option>
+                      <option value="In progress" {% if job.status == "In progress" %}selected{% endif %}>In progress</option>
+                      <option value="Waiting on review" {% if job.status == "Waiting on review" %}selected{% endif %}>Waiting on review</option>
+                      <option value="Blocked" {% if job.status == "Blocked" %}selected{% endif %}>Blocked</option>
+                      <option value="Ready" {% if job.status == "Ready" %}selected{% endif %}>Ready</option>
+                    </select>
+                  </label>
+                  <label class="field-label">
+                    <span>Tone</span>
+                    <select class="field-input" name="tone" data-tone-select>
+                      <option value="warning" {% if job.tone == "warning" %}selected{% endif %}>Warning</option>
+                      <option value="progress" {% if job.tone == "progress" %}selected{% endif %}>Progress</option>
+                      <option value="neutral" {% if job.tone == "neutral" %}selected{% endif %}>Neutral</option>
+                      <option value="success" {% if job.tone == "success" %}selected{% endif %}>Success</option>
+                    </select>
+                  </label>
+                  <label class="field-label field-label-wide">
+                    <span>Detail</span>
+                    <input class="field-input" type="text" name="detail" value="{{ job.detail }}">
+                  </label>
+                </div>
+                <div class="editor-toolbar">
+                  <p class="editor-status" data-export-job-status-message data-state="neutral">Ready to update this export job.</p>
+                  <div class="hero-actions editor-actions">
+                    <a class="btn btn-secondary" data-export-job-open href="{{ job.path }}">Open target</a>
+                    <button class="btn btn-primary" type="submit">Save Job</button>
+                  </div>
+                </div>
+              </form>
             </div>
-            <span class="status-pill status-{{ job.tone }}">{{ job.status }}</span>
-          </a>
+          </article>
         {% endfor %}
       </div>
+      <template data-export-job-template>
+        <article class="feed-item feed-item-static export-job-card" data-export-job-card data-job-key="">
+          <div>
+            <div class="feed-item-heading">
+              <strong><a class="text-link" data-export-job-link href="#">New export job</a></strong>
+              <span class="status-pill status-warning" data-export-job-status>Queued</span>
+            </div>
+            <p data-export-job-detail></p>
+            <form class="editor-form export-job-form" data-export-job-form data-endpoint="">
+              <div class="form-grid form-grid-compact">
+                <label class="field-label">
+                  <span>Status</span>
+                  <select class="field-input" name="status" data-status-select>
+                    <option value="Queued" selected>Queued</option>
+                    <option value="Rendering">Rendering</option>
+                    <option value="In progress">In progress</option>
+                    <option value="Waiting on review">Waiting on review</option>
+                    <option value="Blocked">Blocked</option>
+                    <option value="Ready">Ready</option>
+                  </select>
+                </label>
+                <label class="field-label">
+                  <span>Tone</span>
+                  <select class="field-input" name="tone" data-tone-select>
+                    <option value="warning" selected>Warning</option>
+                    <option value="progress">Progress</option>
+                    <option value="neutral">Neutral</option>
+                    <option value="success">Success</option>
+                  </select>
+                </label>
+                <label class="field-label field-label-wide">
+                  <span>Detail</span>
+                  <input class="field-input" type="text" name="detail" value="">
+                </label>
+              </div>
+              <div class="editor-toolbar">
+                <p class="editor-status" data-export-job-status-message data-state="neutral">Ready to update this export job.</p>
+                <div class="hero-actions editor-actions">
+                  <a class="btn btn-secondary" data-export-job-open href="#">Open target</a>
+                  <button class="btn btn-primary" type="submit">Save Job</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </article>
+      </template>
     </aside>
   </section>
 
@@ -255,4 +410,7 @@
       <a class="btn btn-secondary" href="{{ workspace.tutorial_library.path }}">Open Tutorial Library</a>
     </div>
   </section>
+{% endblock %}
+{% block extra_scripts %}
+  <script src="{{ url_for('static', filename='workspace_exports.js') }}"></script>
 {% endblock %}

@@ -13,6 +13,7 @@ This repository ships a runnable product shell with:
 - 20 guided, real-data tutorial use cases kept separate from the workspace,
 - a persisted SQLite workspace runtime seeded from the generated manifest on first boot,
 - inline editors on project, dataset, figure, and manuscript pages backed by the persisted runtime API,
+- a workspace export queue manager that can create and update delivery jobs in place,
 - generated analysis artifacts and polished chart assets,
 - a hand-held training tutorial with step-by-step instructions,
 - and a Flask web app with a landing page, workspace, docs center, tutorial, and manuscript export flow.
@@ -102,6 +103,7 @@ GraphPad Prism users love polished figures, approachable analysis flows, and qui
 - The web app reads a generated manifest from `data/generated/use_cases.json`; rebuild it whenever you change the use-case generator.
 - The workspace runtime persists to `data/assayatlas.db` and seeds from the generated manifest the first time it needs workspace records.
 - The persisted runtime now exposes a small JSON API for workspace reads, project updates, figure/manuscript edits, export jobs, and workspace event history.
+- The workspace now uses that export-job API directly so users can queue and advance export work without leaving `/workspace`.
 - Runtime entities now pass through typed record models before they are stored or rehydrated, which keeps repository changes more isolated from route and template code.
 - Standard browser requests to `/favicon.ico` are now served directly to avoid stray 404s during demos and review sessions.
 - The README screenshot is produced after the app is running and the tutorial pages are captured locally.

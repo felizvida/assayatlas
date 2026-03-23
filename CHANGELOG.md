@@ -14,6 +14,7 @@ Prepared on March 23, 2026.
 - Typed runtime record models for persisted workspace entities.
 - A lightweight workspace event log to make runtime changes more inspectable.
 - Inline editing panels on project, dataset, figure, and manuscript detail pages, backed by the persisted runtime API.
+- An actionable workspace export queue manager that can create and update export jobs in place.
 - Focused runtime and API tests so feature-level refactors no longer depend only on full-page smoke coverage.
 
 ### Changed

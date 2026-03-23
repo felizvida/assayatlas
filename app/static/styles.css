@@ -641,6 +641,13 @@ body {
   min-width: 0;
 }
 
+.feed-item-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
 .feed-item > div {
   min-width: 0;
   flex: 1;
@@ -658,6 +665,32 @@ body {
 
 .feed-item-static {
   text-decoration: none;
+}
+
+.export-queue-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.export-create-form,
+.export-job-form {
+  margin-top: 0;
+}
+
+.export-job-list {
+  margin-top: 0;
+}
+
+.export-job-card {
+  align-items: stretch;
+}
+
+.export-job-card .editor-toolbar {
+  margin-top: 2px;
+}
+
+.form-grid-compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .team-directory {
@@ -1058,6 +1091,15 @@ thead {
 
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .form-grid-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .feed-item-heading {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .field-label-wide {
