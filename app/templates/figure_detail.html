@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block title %}{{ figure.title }} | {{ product_name }}{% endblock %}
 {% block content %}
-  <section class="case-hero">
+  <section class="case-hero" data-editor-scope="figure">
     <div>
       <div class="use-case-meta">
-        <span class="status-pill status-{{ figure.tone }}">{{ figure.status }}</span>
+        <span class="status-pill status-{{ figure.tone }}" data-bind-status="status" data-bind-tone="tone">{{ figure.status }}</span>
         <span class="muted">{{ figure.project_name }}</span>
       </div>
-      <h1>{{ figure.title }}</h1>
-      <p class="hero-text">{{ figure.summary }}</p>
+      <h1 data-bind="title">{{ figure.title }}</h1>
+      <p class="hero-text" data-bind="summary">{{ figure.summary }}</p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="{{ url_for('download', relative_path=figure.publication_assets.bundle) }}">Download Manuscript Bundle</a>
         <a class="btn btn-secondary" href="{{ url_for('download', relative_path=figure.publication_assets.svg) }}">Download SVG</a>
@@ -20,11 +20,11 @@
       <p class="eyebrow">Figure draft</p>
       <div class="summary-kicker">
         <span>Version</span>
-        <strong>{{ figure.version }}</strong>
+        <strong data-bind="version">{{ figure.version }}</strong>
       </div>
       <div class="summary-kicker">
         <span>Owner</span>
-        <strong>{{ figure.owner }}</strong>
+        <strong data-bind="owner">{{ figure.owner }}</strong>
       </div>
       {% if manuscript %}
         <div class="summary-kicker">
@@ -34,19 +34,19 @@
       {% endif %}
       <div class="summary-kicker">
         <span>Next action</span>
-        <strong>{{ figure.next_action }}</strong>
+        <strong data-bind="next_action">{{ figure.next_action }}</strong>
       </div>
     </aside>
   </section>
 
-  <section class="detail-grid">
+  <section class="detail-grid" data-editor-scope="figure">
     <article class="detail-card chart-card">
       <div class="card-heading">
         <h2>Rendered draft</h2>
         <a class="text-link" href="{{ url_for('static', filename=figure.chart_path) }}">Open raw figure asset</a>
       </div>
       <img class="chart-frame" src="{{ url_for('static', filename=figure.chart_path) }}" alt="{{ figure.title }} figure">
-      <p class="result-summary">{{ figure.what_to_notice }}</p>
+      <p class="result-summary" data-bind="what_to_notice">{{ figure.what_to_notice }}</p>
     </article>
 
     <article class="detail-card metric-card">
@@ -86,7 +86,7 @@
         <span class="muted">{{ figure.project_name }}</span>
       </div>
       <ul class="metric-list compact">
-        <li>{{ figure.next_action }}</li>
+        <li data-bind="next_action">{{ figure.next_action }}</li>
         <li>Source note: {{ figure.source_note }}</li>
         {% if manuscript %}
           <li>Attached to manuscript packet: {{ manuscript.title }}</li>
@@ -107,16 +107,90 @@
       </div>
       <div class="text-block">
         <h3>Figure legend</h3>
-        <p>{{ figure.caption_text }}</p>
+        <p data-bind="caption_text">{{ figure.caption_text }}</p>
       </div>
       <div class="text-block">
         <h3>Methods</h3>
-        <p>{{ figure.methods_text }}</p>
+        <p data-bind="methods_text">{{ figure.methods_text }}</p>
       </div>
       <div class="text-block">
         <h3>Results</h3>
-        <p>{{ figure.results_text }}</p>
+        <p data-bind="results_text">{{ figure.results_text }}</p>
       </div>
+    </article>
+
+    <article class="detail-card editor-card editor-card-wide">
+      <div class="card-heading">
+        <div>
+          <h2>Workspace Editor</h2>
+          <span class="muted">Adjust the figure draft without leaving the page.</span>
+        </div>
+      </div>
+      <form
+        class="editor-form"
+        data-inline-editor
+        data-editor-scope="figure"
+        data-endpoint="{{ url_for('api_figure_update', slug=figure.slug) }}"
+        data-record-key="figure"
+      >
+        <div class="form-grid">
+          <label class="field-label">
+            <span>Figure title</span>
+            <input class="field-input" type="text" name="title" value="{{ figure.title }}">
+          </label>
+          <label class="field-label">
+            <span>Status</span>
+            <input class="field-input" type="text" name="status" value="{{ figure.status }}">
+          </label>
+          <label class="field-label">
+            <span>Tone</span>
+            <select class="field-input" name="tone">
+              {% for tone in ["success", "progress", "warning", "neutral"] %}
+                <option value="{{ tone }}" {% if figure.tone == tone %}selected{% endif %}>{{ tone|capitalize }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="field-label">
+            <span>Version</span>
+            <input class="field-input" type="text" name="version" value="{{ figure.version }}">
+          </label>
+          <label class="field-label">
+            <span>Owner</span>
+            <input class="field-input" type="text" name="owner" value="{{ figure.owner }}">
+          </label>
+          <label class="field-label">
+            <span>Next action</span>
+            <input class="field-input" type="text" name="next_action" value="{{ figure.next_action }}">
+          </label>
+          <label class="field-label field-label-wide">
+            <span>Summary</span>
+            <textarea class="field-input field-textarea" name="summary" rows="3">{{ figure.summary }}</textarea>
+          </label>
+          <label class="field-label field-label-wide">
+            <span>What to notice</span>
+            <textarea class="field-input field-textarea" name="what_to_notice" rows="3">{{ figure.what_to_notice }}</textarea>
+          </label>
+          <label class="field-label field-label-wide">
+            <span>Figure legend</span>
+            <textarea class="field-input field-textarea" name="caption_text" rows="4">{{ figure.caption_text }}</textarea>
+          </label>
+          <label class="field-label field-label-wide">
+            <span>Methods blurb</span>
+            <textarea class="field-input field-textarea" name="methods_text" rows="4">{{ figure.methods_text }}</textarea>
+          </label>
+          <label class="field-label field-label-wide">
+            <span>Results blurb</span>
+            <textarea class="field-input field-textarea" name="results_text" rows="4">{{ figure.results_text }}</textarea>
+          </label>
+        </div>
+        <div class="editor-toolbar">
+          <p class="editor-status" data-editor-status data-state="neutral">Ready to save changes to the live workspace.</p>
+          <div class="hero-actions editor-actions">
+            <button class="btn btn-primary" type="submit">Save Figure Draft</button>
+            <button class="btn btn-secondary" type="reset">Reset Form</button>
+          </div>
+        </div>
+      </form>
     </article>
 
     <article class="detail-card">
@@ -150,4 +224,7 @@
       {% endif %}
     </article>
   </section>
+{% endblock %}
+{% block extra_scripts %}
+  <script src="{{ url_for('static', filename='editor.js') }}"></script>
 {% endblock %}

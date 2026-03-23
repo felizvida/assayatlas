@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block title %}{{ manuscript.title }} | {{ product_name }}{% endblock %}
 {% block content %}
-  <section class="case-hero">
+  <section class="case-hero" data-editor-scope="manuscript">
     <div>
       <div class="use-case-meta">
-        <span class="status-pill status-{{ manuscript.tone }}">{{ manuscript.status }}</span>
-        <span class="muted">{{ manuscript.target_journal }}</span>
+        <span class="status-pill status-{{ manuscript.tone }}" data-bind-status="status" data-bind-tone="tone">{{ manuscript.status }}</span>
+        <span class="muted" data-bind="target_journal">{{ manuscript.target_journal }}</span>
       </div>
-      <h1>{{ manuscript.title }}</h1>
-      <p class="hero-text">{{ manuscript.narrative }}</p>
+      <h1 data-bind="title">{{ manuscript.title }}</h1>
+      <p class="hero-text" data-bind="narrative">{{ manuscript.narrative }}</p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="{{ url_for('project_detail', slug=project.slug) }}">Open Project</a>
         <a class="btn btn-secondary" href="{{ url_for('docs_page', slug='publication') }}">Read Publication Workflow</a>
@@ -23,20 +23,81 @@
       </div>
       <div class="summary-kicker">
         <span>Due</span>
-        <strong>{{ manuscript.due_date }}</strong>
+        <strong data-bind="due_date">{{ manuscript.due_date }}</strong>
       </div>
       <div class="summary-kicker">
         <span>Preset</span>
-        <strong>{{ manuscript.submission_preset }}</strong>
+        <strong data-bind="submission_preset">{{ manuscript.submission_preset }}</strong>
       </div>
       <div class="summary-kicker">
         <span>Figures</span>
-        <strong>{{ manuscript.figure_progress }}</strong>
+        <strong data-bind="figure_progress">{{ manuscript.figure_progress }}</strong>
       </div>
     </aside>
   </section>
 
-  <section class="section-block workspace-columns">
+  <section class="section-block workspace-columns" data-editor-scope="manuscript">
+    <div class="workspace-card editor-card">
+      <div class="card-heading">
+        <div>
+          <h2>Packet Editor</h2>
+          <span class="muted">Keep the manuscript packet aligned with the live workspace record.</span>
+        </div>
+      </div>
+      <form
+        class="editor-form"
+        data-inline-editor
+        data-editor-scope="manuscript"
+        data-endpoint="{{ url_for('api_manuscript_update', slug=manuscript.slug) }}"
+        data-record-key="manuscript"
+      >
+        <div class="form-grid">
+          <label class="field-label">
+            <span>Packet title</span>
+            <input class="field-input" type="text" name="title" value="{{ manuscript.title }}">
+          </label>
+          <label class="field-label">
+            <span>Status</span>
+            <input class="field-input" type="text" name="status" value="{{ manuscript.status }}">
+          </label>
+          <label class="field-label">
+            <span>Tone</span>
+            <select class="field-input" name="tone">
+              {% for tone in ["success", "progress", "warning", "neutral"] %}
+                <option value="{{ tone }}" {% if manuscript.tone == tone %}selected{% endif %}>{{ tone|capitalize }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="field-label">
+            <span>Target journal</span>
+            <input class="field-input" type="text" name="target_journal" value="{{ manuscript.target_journal }}">
+          </label>
+          <label class="field-label">
+            <span>Submission preset</span>
+            <input class="field-input" type="text" name="submission_preset" value="{{ manuscript.submission_preset }}">
+          </label>
+          <label class="field-label">
+            <span>Due date</span>
+            <input class="field-input" type="text" name="due_date" value="{{ manuscript.due_date }}">
+          </label>
+          <label class="field-label">
+            <span>Figure progress</span>
+            <input class="field-input" type="text" name="figure_progress" value="{{ manuscript.figure_progress }}">
+          </label>
+          <label class="field-label field-label-wide">
+            <span>Narrative</span>
+            <textarea class="field-input field-textarea" name="narrative" rows="5">{{ manuscript.narrative }}</textarea>
+          </label>
+        </div>
+        <div class="editor-toolbar">
+          <p class="editor-status" data-editor-status data-state="neutral">Ready to save the manuscript packet state.</p>
+          <div class="hero-actions editor-actions">
+            <button class="btn btn-primary" type="submit">Save Packet</button>
+            <button class="btn btn-secondary" type="reset">Reset Form</button>
+          </div>
+        </div>
+      </form>
+    </div>
     <div class="workspace-card">
       <div class="card-heading">
         <h2>Section checklist</h2>
@@ -101,4 +162,7 @@
       {% endfor %}
     </div>
   </section>
+{% endblock %}
+{% block extra_scripts %}
+  <script src="{{ url_for('static', filename='editor.js') }}"></script>
 {% endblock %}

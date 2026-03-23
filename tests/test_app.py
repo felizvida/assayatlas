@@ -102,12 +102,14 @@ class AppRoutesTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Dietary Supplementation Reshapes Growth Response Dynamics", response.data)
         self.assertIn(b"Section checklist", response.data)
+        self.assertIn(b"Packet Editor", response.data)
 
     def test_figure_route_renders(self) -> None:
         response = self.client.get("/figures/publication-figure-board")
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Mechanism-of-Action Manuscript Board", response.data)
         self.assertIn(b"Open Tutorial Recipe", response.data)
+        self.assertIn(b"Workspace Editor", response.data)
 
     def test_healthz(self) -> None:
         response = self.client.get("/healthz")
