@@ -90,6 +90,7 @@ class AppRoutesTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Nutrient Response Atlas", response.data)
         self.assertIn(b"Figure Workbench", response.data)
+        self.assertIn(b"Project Editor", response.data)
 
     def test_dataset_route_renders(self) -> None:
         response = self.client.get("/datasets/toothgrowth")

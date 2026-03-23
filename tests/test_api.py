@@ -197,15 +197,17 @@ class WorkspaceApiTest(unittest.TestCase):
     def test_project_patch_updates_persisted_runtime_project(self) -> None:
         response = self.client.patch(
             "/api/projects/demo-project",
-            json={"status": "Ready for submission", "completion": 95},
+            json={"name": "Demo Project Updated", "status": "Ready for submission", "completion": 95},
         )
         payload = response.get_json()
 
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload["project"]["name"], "Demo Project Updated")
         self.assertEqual(payload["project"]["status"], "Ready for submission")
         self.assertEqual(payload["project"]["completion"], 95)
 
         read_back = self.client.get("/api/projects/demo-project").get_json()
+        self.assertEqual(read_back["project"]["name"], "Demo Project Updated")
         self.assertEqual(read_back["project"]["status"], "Ready for submission")
 
     def test_export_job_api_creates_and_updates_job(self) -> None:

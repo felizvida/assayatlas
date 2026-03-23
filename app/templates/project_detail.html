@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block title %}{{ project.name }} | {{ product_name }}{% endblock %}
 {% block content %}
-  <section class="case-hero">
+  <section class="case-hero" data-editor-scope="project">
     <div>
       <div class="use-case-meta">
-        <span class="status-pill status-{{ project.tone }}">{{ project.status }}</span>
-        <span class="muted">{{ project.target_journal }}</span>
+        <span class="status-pill status-{{ project.tone }}" data-bind-status="status" data-bind-tone="tone">{{ project.status }}</span>
+        <span class="muted" data-bind="target_journal">{{ project.target_journal }}</span>
       </div>
-      <h1>{{ project.name }}</h1>
-      <p class="hero-text">{{ project.summary }}</p>
+      <h1 data-bind="name">{{ project.name }}</h1>
+      <p class="hero-text" data-bind="summary">{{ project.summary }}</p>
       <div class="hero-actions">
         {% if manuscript %}
           <a class="btn btn-primary" href="{{ url_for('manuscript_detail', slug=manuscript.slug) }}">Open Manuscript Packet</a>
@@ -23,26 +23,26 @@
       <p class="eyebrow">Project snapshot</p>
       <div class="summary-kicker">
         <span>Owner</span>
-        <strong>{{ project.owner }}</strong>
+        <strong data-bind="owner">{{ project.owner }}</strong>
       </div>
       <div class="summary-kicker">
         <span>Due</span>
-        <strong>{{ project.due_date }}</strong>
+        <strong data-bind="due_date">{{ project.due_date }}</strong>
       </div>
       <div class="summary-kicker">
         <span>Preset</span>
-        <strong>{{ project.export_preset }}</strong>
+        <strong data-bind="export_preset">{{ project.export_preset }}</strong>
       </div>
       <div class="summary-kicker">
         <span>Next review</span>
-        <strong>{{ project.next_review }}</strong>
+        <strong data-bind="next_review">{{ project.next_review }}</strong>
       </div>
     </aside>
   </section>
 
-  <section class="dashboard-metrics">
+  <section class="dashboard-metrics" data-editor-scope="project">
     <article class="metric-slab">
-      <strong>{{ project.completion }}%</strong>
+      <strong data-bind="completion" data-bind-suffix="%">{{ project.completion }}%</strong>
       <span>project completion</span>
     </article>
     <article class="metric-slab">
@@ -57,6 +57,78 @@
       <strong>{{ project.team|length }}</strong>
       <span>active collaborators</span>
     </article>
+  </section>
+
+  <section class="section-block" data-editor-scope="project">
+    <div class="workspace-card editor-card">
+      <div class="card-heading">
+        <div>
+          <h2>Project Editor</h2>
+          <span class="muted">Update the live workspace record for this study without leaving the project page.</span>
+        </div>
+      </div>
+      <form
+        class="editor-form"
+        data-inline-editor
+        data-editor-scope="project"
+        data-endpoint="{{ url_for('api_project_update', slug=project.slug) }}"
+        data-record-key="project"
+      >
+        <div class="form-grid">
+          <label class="field-label">
+            <span>Project name</span>
+            <input class="field-input" type="text" name="name" value="{{ project.name }}">
+          </label>
+          <label class="field-label">
+            <span>Status</span>
+            <input class="field-input" type="text" name="status" value="{{ project.status }}">
+          </label>
+          <label class="field-label">
+            <span>Tone</span>
+            <select class="field-input" name="tone">
+              {% for tone in ["success", "progress", "warning", "neutral"] %}
+                <option value="{{ tone }}" {% if project.tone == tone %}selected{% endif %}>{{ tone|capitalize }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="field-label">
+            <span>Completion</span>
+            <input class="field-input" type="number" min="0" max="100" name="completion" value="{{ project.completion }}">
+          </label>
+          <label class="field-label">
+            <span>Owner</span>
+            <input class="field-input" type="text" name="owner" value="{{ project.owner }}">
+          </label>
+          <label class="field-label">
+            <span>Target journal</span>
+            <input class="field-input" type="text" name="target_journal" value="{{ project.target_journal }}">
+          </label>
+          <label class="field-label">
+            <span>Export preset</span>
+            <input class="field-input" type="text" name="export_preset" value="{{ project.export_preset }}">
+          </label>
+          <label class="field-label">
+            <span>Due date</span>
+            <input class="field-input" type="text" name="due_date" value="{{ project.due_date }}">
+          </label>
+          <label class="field-label">
+            <span>Next review</span>
+            <input class="field-input" type="text" name="next_review" value="{{ project.next_review }}">
+          </label>
+          <label class="field-label field-label-wide">
+            <span>Summary</span>
+            <textarea class="field-input field-textarea" name="summary" rows="4">{{ project.summary }}</textarea>
+          </label>
+        </div>
+        <div class="editor-toolbar">
+          <p class="editor-status" data-editor-status data-state="neutral">Ready to save the project workspace state.</p>
+          <div class="hero-actions editor-actions">
+            <button class="btn btn-primary" type="submit">Save Project</button>
+            <button class="btn btn-secondary" type="reset">Reset Form</button>
+          </div>
+        </div>
+      </form>
+    </div>
   </section>
 
   <section class="section-block">
@@ -162,4 +234,7 @@
       </div>
     {% endif %}
   </section>
+{% endblock %}
+{% block extra_scripts %}
+  <script src="{{ url_for('static', filename='editor.js') }}"></script>
 {% endblock %}

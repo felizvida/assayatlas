@@ -142,6 +142,7 @@ class PersistedWorkspaceRepository:
 
     def update_project(self, slug: str, changes: dict[str, Any]) -> dict[str, Any] | None:
         allowed_fields = {
+            "name",
             "status",
             "tone",
             "summary",

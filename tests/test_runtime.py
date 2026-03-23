@@ -182,15 +182,17 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
 
         updated = self.repository.update_project(
             "demo-project",
-            {"status": "Ready for submission", "completion": 95, "summary": "Updated summary"},
+            {"name": "Demo Project Updated", "status": "Ready for submission", "completion": 95, "summary": "Updated summary"},
         )
 
         self.assertIsNotNone(updated)
         assert updated is not None
+        self.assertEqual(updated["name"], "Demo Project Updated")
         self.assertEqual(updated["status"], "Ready for submission")
         self.assertEqual(updated["completion"], 95)
 
         snapshot = self.repository.workspace_snapshot()
+        self.assertEqual(snapshot["projects"][0]["name"], "Demo Project Updated")
         self.assertEqual(snapshot["projects"][0]["status"], "Ready for submission")
         self.assertEqual(snapshot["activity_feed"][-1]["kind"], "Project")
         self.assertEqual(snapshot["workspace_events"][0]["event_type"], "project.updated")

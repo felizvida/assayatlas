@@ -15,7 +15,8 @@
       if (!(field in record)) {
         return;
       }
-      element.textContent = record[field] ?? "";
+      const suffix = element.dataset.bindSuffix || "";
+      element.textContent = `${record[field] ?? ""}${suffix}`;
     });
 
     scope.querySelectorAll("[data-bind-status]").forEach((element) => {
@@ -30,11 +31,15 @@
   async function submitEditorForm(form) {
     const statusElement = form.querySelector("[data-editor-status]");
     const submitButton = form.querySelector('button[type="submit"]');
-    const scope = document.querySelector(`[data-editor-scope="${form.dataset.editorScope}"]`) || document;
+    const scopedElements = Array.from(document.querySelectorAll(`[data-editor-scope="${form.dataset.editorScope}"]`));
     const payload = {};
 
     form.querySelectorAll("[name]").forEach((field) => {
       if (field.disabled) {
+        return;
+      }
+      if (field.type === "number" && field.value !== "") {
+        payload[field.name] = Number(field.value);
         return;
       }
       payload[field.name] = field.value.trim();
@@ -59,7 +64,11 @@
         throw new Error(data.error || "Unable to save changes.");
       }
       const record = data[form.dataset.recordKey];
-      applyRecordToScope(scope, record);
+      if (scopedElements.length) {
+        scopedElements.forEach((scope) => applyRecordToScope(scope, record));
+      } else {
+        applyRecordToScope(document, record);
+      }
       if (statusElement) {
         statusElement.textContent = "Saved to the workspace.";
         statusElement.dataset.state = "success";

@@ -162,6 +162,7 @@ def create_app(
         service.ensure_runtime_seeded()
         payload = request.get_json(silent=True) or {}
         allowed_fields = {
+            "name",
             "status",
             "tone",
             "summary",
