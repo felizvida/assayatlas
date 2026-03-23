@@ -231,6 +231,34 @@ class WorkspaceApiTest(unittest.TestCase):
         self.assertEqual(events[0]["event_type"], "export_job.updated")
         self.assertEqual(self.client.get("/api/export-jobs").get_json()["export_jobs"][-1]["title"], "Fresh TIFF export")
 
+    def test_figure_patch_updates_persisted_runtime_figure(self) -> None:
+        response = self.client.patch(
+            "/api/figures/demo-figure",
+            json={"status": "Ready for journal upload", "version": "v4", "next_action": "Lock panel labels"},
+        )
+        payload = response.get_json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload["figure"]["status"], "Ready for journal upload")
+        self.assertEqual(payload["figure"]["version"], "v4")
+
+        read_back = self.client.get("/api/figures/demo-figure").get_json()
+        self.assertEqual(read_back["figure"]["next_action"], "Lock panel labels")
+
+    def test_manuscript_patch_updates_persisted_runtime_packet(self) -> None:
+        response = self.client.patch(
+            "/api/manuscripts/demo-manuscript",
+            json={"status": "Submission packet ready", "figure_progress": "1/1 figures approved"},
+        )
+        payload = response.get_json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload["manuscript"]["status"], "Submission packet ready")
+        self.assertEqual(payload["manuscript"]["figure_progress"], "1/1 figures approved")
+
+        read_back = self.client.get("/api/manuscripts/demo-manuscript").get_json()
+        self.assertEqual(read_back["manuscript"]["status"], "Submission packet ready")
+
 
 if __name__ == "__main__":
     unittest.main()

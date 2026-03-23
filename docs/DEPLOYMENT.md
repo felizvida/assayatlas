@@ -18,6 +18,7 @@ The app now maintains a persisted workspace database at `data/assayatlas.db`.
 - `data/generated/use_cases.json` remains the seed source for tutorial and initial workspace content.
 - `data/assayatlas.db` is created automatically and seeded on first access to workspace records.
 - The runtime applies schema migrations automatically on startup.
+- The runtime persists figure and manuscript edits through the same SQLite application core used for projects and export jobs.
 - Delete the database only if you intentionally want to reseed the workspace from the generated manifest.
 
 ## Docker build
@@ -40,6 +41,18 @@ Expected response:
 ```json
 {"ok": true, "manifest": true, "workspace_db": true, "workspace_schema_version": 2}
 ```
+
+## Runtime API surface
+
+The persisted workspace currently exposes:
+
+- `GET /api/workspace`
+- `GET|PATCH /api/projects/<slug>`
+- `GET|PATCH /api/figures/<slug>`
+- `GET|PATCH /api/manuscripts/<slug>`
+- `GET|POST /api/export-jobs`
+- `PATCH /api/export-jobs/<job_key>`
+- `GET /api/workspace-events`
 
 ## Release pull workflow
 

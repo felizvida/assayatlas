@@ -9,7 +9,9 @@ Prepared on March 23, 2026.
 ### Added
 
 - Persisted workspace runtime APIs for workspace reads, project updates, export jobs, and workspace events.
+- Persisted runtime APIs for figure-draft and manuscript-packet updates.
 - Schema-versioned runtime migrations for the SQLite workspace database.
+- Typed runtime record models for persisted workspace entities.
 - A lightweight workspace event log to make runtime changes more inspectable.
 - Focused runtime and API tests so feature-level refactors no longer depend only on full-page smoke coverage.
 

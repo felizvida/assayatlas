@@ -217,8 +217,56 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
 
         export_jobs = self.repository.list_export_jobs()
         self.assertEqual(len(export_jobs), 2)
+        self.assertTrue(export_jobs[0]["job_key"].startswith("export_jobs-0-"))
         self.assertEqual(export_jobs[-1]["title"], "Fresh TIFF export")
         self.assertEqual(self.repository.list_workspace_events()[0]["event_type"], "export_job.updated")
+
+    def test_figure_update_persists_and_emits_event(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        updated = self.repository.update_figure(
+            "demo-figure",
+            {
+                "status": "Ready for journal upload",
+                "version": "v4",
+                "summary": "Updated figure summary.",
+                "next_action": "Lock panel labels",
+            },
+        )
+
+        self.assertIsNotNone(updated)
+        assert updated is not None
+        self.assertEqual(updated["status"], "Ready for journal upload")
+        self.assertEqual(updated["version"], "v4")
+
+        figure = self.repository.get_figure("demo-figure")
+        self.assertIsNotNone(figure)
+        assert figure is not None
+        self.assertEqual(figure["next_action"], "Lock panel labels")
+        self.assertEqual(self.repository.list_workspace_events()[0]["event_type"], "figure.updated")
+
+    def test_manuscript_update_persists_and_emits_event(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        updated = self.repository.update_manuscript(
+            "demo-manuscript",
+            {
+                "status": "Submission packet ready",
+                "figure_progress": "1/1 figures approved",
+                "narrative": "Updated manuscript narrative.",
+            },
+        )
+
+        self.assertIsNotNone(updated)
+        assert updated is not None
+        self.assertEqual(updated["status"], "Submission packet ready")
+        self.assertEqual(updated["figure_progress"], "1/1 figures approved")
+
+        manuscript = self.repository.get_manuscript("demo-manuscript")
+        self.assertIsNotNone(manuscript)
+        assert manuscript is not None
+        self.assertEqual(manuscript["narrative"], "Updated manuscript narrative.")
+        self.assertEqual(self.repository.list_workspace_events()[0]["event_type"], "manuscript.updated")
 
 
 if __name__ == "__main__":

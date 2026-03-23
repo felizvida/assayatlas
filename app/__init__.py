@@ -143,6 +143,20 @@ def create_app(
             abort(404)
         return {"project": page.project, "manuscript": page.manuscript}
 
+    @app.get("/api/figures/<slug>")
+    def api_figure_detail(slug: str):
+        page = service.figure_page(slug)
+        if not page:
+            abort(404)
+        return {"figure": page.figure, "project": page.project, "manuscript": page.manuscript}
+
+    @app.get("/api/manuscripts/<slug>")
+    def api_manuscript_detail(slug: str):
+        page = service.manuscript_page(slug)
+        if not page:
+            abort(404)
+        return {"manuscript": page.manuscript, "project": page.project}
+
     @app.patch("/api/projects/<slug>")
     def api_project_update(slug: str):
         service.ensure_runtime_seeded()
@@ -168,6 +182,56 @@ def create_app(
         if not project:
             abort(404)
         return {"project": project}
+
+    @app.patch("/api/figures/<slug>")
+    def api_figure_update(slug: str):
+        service.ensure_runtime_seeded()
+        payload = request.get_json(silent=True) or {}
+        allowed_fields = {
+            "title",
+            "status",
+            "tone",
+            "version",
+            "summary",
+            "what_to_notice",
+            "key_metrics",
+            "caption_text",
+            "methods_text",
+            "results_text",
+            "next_action",
+            "owner",
+        }
+        changes = {key: value for key, value in payload.items() if key in allowed_fields}
+        if not changes:
+            return {"error": "No updatable fields provided."}, 400
+        figure = service.workspace_service.update_figure(slug, changes)
+        if not figure:
+            abort(404)
+        return {"figure": figure}
+
+    @app.patch("/api/manuscripts/<slug>")
+    def api_manuscript_update(slug: str):
+        service.ensure_runtime_seeded()
+        payload = request.get_json(silent=True) or {}
+        allowed_fields = {
+            "title",
+            "status",
+            "tone",
+            "narrative",
+            "submission_preset",
+            "target_journal",
+            "due_date",
+            "sections",
+            "deliverables",
+            "figure_progress",
+        }
+        changes = {key: value for key, value in payload.items() if key in allowed_fields}
+        if not changes:
+            return {"error": "No updatable fields provided."}, 400
+        manuscript = service.workspace_service.update_manuscript(slug, changes)
+        if not manuscript:
+            abort(404)
+        return {"manuscript": manuscript}
 
     @app.get("/api/export-jobs")
     def api_export_jobs():
