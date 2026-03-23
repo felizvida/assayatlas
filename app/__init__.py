@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from flask import Flask, abort, render_template, request, send_file
 
 from app.content import ContentService, DownloadPolicy
@@ -113,6 +115,10 @@ def create_app(
         except (FileNotFoundError, PermissionError, ValueError):
             abort(404)
         return send_file(target)
+
+    @app.get("/favicon.ico")
+    def favicon():
+        return send_file(Path(app.static_folder) / "favicon.svg", mimetype="image/svg+xml")
 
     @app.get("/healthz")
     def healthz():

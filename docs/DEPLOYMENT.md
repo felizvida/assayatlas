@@ -41,6 +41,32 @@ Expected response:
 {"ok": true, "manifest": true, "workspace_db": true, "workspace_schema_version": 2}
 ```
 
+## Release pull workflow
+
+For a pull-based deployment from GitHub:
+
+```bash
+cd /srv/assayatlas
+git fetch --tags origin
+git checkout main
+git pull --ff-only origin main
+./.venv/bin/pip install -r requirements.txt
+./.venv/bin/python scripts/build_examples.py
+./.venv/bin/python -m unittest tests.test_app -v
+./.venv/bin/python run.py
+```
+
+If you deploy by tag instead of by branch head:
+
+```bash
+cd /srv/assayatlas
+git fetch --tags origin
+git checkout v0.1.1
+./.venv/bin/pip install -r requirements.txt
+./.venv/bin/python scripts/build_examples.py
+./.venv/bin/python run.py
+```
+
 ## Regenerating tutorial content
 
 Any time you change the analysis generator, rerun:
@@ -69,3 +95,15 @@ rm -f data/assayatlas.db
 - Rebuild generated assets after any use-case or visual-style change.
 - Keep `data/assayatlas.db` out of version control; it is runtime state, not a source artifact.
 - Capture fresh screenshots after UI changes so the tutorial remains truthful.
+
+## Rollback
+
+To return to the current public baseline:
+
+```bash
+cd /srv/assayatlas
+git fetch --tags origin
+git checkout v0.1.0
+./.venv/bin/python scripts/build_examples.py
+./.venv/bin/python run.py
+```

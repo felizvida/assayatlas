@@ -5,6 +5,8 @@
 
 AssayAtlas is a production-oriented SaaS-style GraphPad Prism alternative built around one promise: publication-grade figures should be the default output, not the last mile.
 
+Current release preparation is tracked in [docs/releases/v0.1.1.md](docs/releases/v0.1.1.md).
+
 This repository ships a runnable product shell with:
 
 - a true SaaS-style workspace for projects, figures, datasets, manuscripts, and exports,
@@ -55,6 +57,8 @@ Runtime API routes:
 
 ## Documentation
 
+- Changelog: `CHANGELOG.md`
+- Release notes: `docs/releases/v0.1.1.md`
 - Training tutorial: `docs/tutorial/REAL_DATA_TRAINING_TUTORIAL.md`
 - Use-case catalog: `docs/tutorial/USE_CASE_CATALOG.md`
 - Publication workflow: `docs/PUBLICATION_WORKFLOW.md`
@@ -69,6 +73,12 @@ Runtime API routes:
 ```bash
 ./.venv/bin/python scripts/build_examples.py
 ./.venv/bin/python -m unittest discover -s tests -v
+```
+
+For release-shell verification after route or browser-polish changes:
+
+```bash
+./.venv/bin/python -m unittest tests.test_app -v
 ```
 
 ## Container run
@@ -88,4 +98,5 @@ GraphPad Prism users love polished figures, approachable analysis flows, and qui
 - The web app reads a generated manifest from `data/generated/use_cases.json`; rebuild it whenever you change the use-case generator.
 - The workspace runtime persists to `data/assayatlas.db` and seeds from the generated manifest the first time it needs workspace records.
 - The persisted runtime now exposes a small JSON API for workspace reads, project updates, export jobs, and workspace event history.
+- Standard browser requests to `/favicon.ico` are now served directly to avoid stray 404s during demos and review sessions.
 - The README screenshot is produced after the app is running and the tutorial pages are captured locally.

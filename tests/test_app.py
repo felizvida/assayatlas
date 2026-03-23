@@ -59,6 +59,14 @@ class AppRoutesTest(unittest.TestCase):
         finally:
             response.close()
 
+    def test_favicon_route_renders(self) -> None:
+        response = self.client.get("/favicon.ico")
+        try:
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.content_type.split(";")[0], "image/svg+xml")
+        finally:
+            response.close()
+
     def test_download_blocks_repo_internal_files(self) -> None:
         response = self.client.get("/download/.git/config")
         self.assertEqual(response.status_code, 404)
