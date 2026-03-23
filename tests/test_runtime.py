@@ -164,6 +164,18 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
         self.assertEqual(service.get_figure("demo-figure")["title"], "Demo Figure")
         self.assertEqual(service.get_manuscript("demo-manuscript")["title"], "Demo Manuscript")
 
+    def test_seed_is_one_time_and_does_not_overwrite_existing_workspace(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+        changed_workspace = make_workspace_payload()
+        changed_workspace["projects"][0]["name"] = "Changed Project Name"
+        changed_workspace["tutorial_library"]["summary"] = "Changed summary"
+
+        self.repository.ensure_seeded(changed_workspace)
+
+        snapshot = self.repository.workspace_snapshot()
+        self.assertEqual(snapshot["projects"][0]["name"], "Demo Project")
+        self.assertEqual(snapshot["tutorial_library"]["summary"], "Seeded tutorial library.")
+
 
 if __name__ == "__main__":
     unittest.main()

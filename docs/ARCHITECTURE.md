@@ -35,7 +35,7 @@ The current implementation is a production-oriented product shell for a single s
 2. `ManifestBuilder` prepares the offline-friendly source datasets and dispatches each use case through the registered feature builder.
 3. The builder registry returns workflow-specific outputs, which are packaged into publication assets and assembled into a canonical manifest JSON file.
 4. The runtime seeds persisted workspace records from the generated manifest when the workspace database is empty.
-5. The Flask app reads tutorial/docs content from the file-backed manifest layer and workspace content from the persisted runtime service.
+5. The Flask app reads tutorial/docs content from the file-backed manifest layer and reads workspace, project, dataset, manuscript, and figure pages from the persisted runtime service.
 6. Screenshots can then be captured from the real pages and referenced from the training docs.
 
 ## Why the generator matters

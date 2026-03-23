@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from app.content import ContentService, DocDescriptor, DownloadPolicy, FileBackedContentRepository
+from app.runtime import PersistedWorkspaceRepository, WorkspaceService
 
 
 def make_manifest(product_name: str = "AssayAtlas") -> dict:
@@ -134,6 +135,7 @@ class ContentLayerTest(unittest.TestCase):
         self.root = Path(self.temp_dir.name)
         self.manifest_path = self.root / "use_cases.json"
         self.training_doc = self.root / "training.md"
+        self.workspace_db_path = self.root / "workspace.db"
         self.manifest_path.write_text(json.dumps(make_manifest()), encoding="utf-8")
         self.training_doc.write_text("# Training\n\nVersion one", encoding="utf-8")
         self.repo = FileBackedContentRepository(
@@ -147,6 +149,7 @@ class ContentLayerTest(unittest.TestCase):
                 )
             },
         )
+        self.workspace_service = WorkspaceService(repository=PersistedWorkspaceRepository(self.workspace_db_path))
 
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
@@ -200,7 +203,7 @@ class ContentLayerTest(unittest.TestCase):
             policy.resolve_download(".git/config")
 
     def test_content_service_builds_use_case_navigation(self) -> None:
-        service = ContentService(repository=self.repo)
+        service = ContentService(repository=self.repo, workspace_service=self.workspace_service)
         page = service.use_case_page("beta")
         self.assertIsNotNone(page)
         assert page is not None
@@ -208,6 +211,38 @@ class ContentLayerTest(unittest.TestCase):
         self.assertEqual(page.previous_item["slug"], "alpha")
         self.assertIsNone(page.next_item)
         self.assertEqual(service.site_globals().product_name, "AssayAtlas")
+
+    def test_workspace_pages_keep_working_after_manifest_workspace_changes(self) -> None:
+        service = ContentService(repository=self.repo, workspace_service=self.workspace_service)
+
+        seeded_project_page = service.project_page("proj")
+        self.assertIsNotNone(seeded_project_page)
+        assert seeded_project_page is not None
+        self.assertEqual(seeded_project_page.project["name"], "Project")
+
+        updated = make_manifest()
+        updated["workspace"] = {
+            "metrics": [],
+            "quick_actions": [],
+            "pinned_tasks": [],
+            "projects": [],
+            "manuscripts": [],
+            "figure_drafts": [],
+            "datasets": [],
+            "export_queue": [],
+            "activity_feed": [],
+            "tutorial_library": {"count": 2, "summary": "Summary", "path": "/tutorial"},
+        }
+        self.manifest_path.write_text(json.dumps(updated), encoding="utf-8")
+
+        workspace_page = service.workspace_page()
+        self.assertEqual(workspace_page.workspace["projects"][0]["slug"], "proj")
+
+        persisted_project_page = service.project_page("proj")
+        self.assertIsNotNone(persisted_project_page)
+        assert persisted_project_page is not None
+        self.assertEqual(persisted_project_page.project["name"], "Project")
+        self.assertEqual(persisted_project_page.manuscript["slug"], "ms")
 
 
 if __name__ == "__main__":

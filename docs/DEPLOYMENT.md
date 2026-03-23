@@ -37,7 +37,7 @@ curl http://127.0.0.1:5000/healthz
 Expected response:
 
 ```json
-{"ok": true, "manifest": true}
+{"ok": true, "manifest": true, "workspace_db": true}
 ```
 
 ## Regenerating tutorial content
