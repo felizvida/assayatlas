@@ -297,6 +297,9 @@ class ContentService:
         self.workspace_service.ensure_seeded(manifest.workspace)
         return manifest
 
+    def ensure_runtime_seeded(self) -> None:
+        self._ensure_workspace_seeded()
+
     def site_globals(self) -> SiteGlobals:
         manifest = self.repository.manifest()
         return SiteGlobals(

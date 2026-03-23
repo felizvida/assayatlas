@@ -150,6 +150,7 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
 
         snapshot = self.repository.workspace_snapshot()
 
+        self.assertEqual(self.repository.schema_version(), 2)
         self.assertEqual(snapshot["metrics"][0]["value"], "1")
         self.assertEqual(snapshot["projects"][0]["slug"], "demo-project")
         self.assertEqual(snapshot["datasets"][0]["slug"], "demo-dataset")
@@ -175,6 +176,49 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
         snapshot = self.repository.workspace_snapshot()
         self.assertEqual(snapshot["projects"][0]["name"], "Demo Project")
         self.assertEqual(snapshot["tutorial_library"]["summary"], "Seeded tutorial library.")
+
+    def test_project_update_persists_and_emits_event(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        updated = self.repository.update_project(
+            "demo-project",
+            {"status": "Ready for submission", "completion": 95, "summary": "Updated summary"},
+        )
+
+        self.assertIsNotNone(updated)
+        assert updated is not None
+        self.assertEqual(updated["status"], "Ready for submission")
+        self.assertEqual(updated["completion"], 95)
+
+        snapshot = self.repository.workspace_snapshot()
+        self.assertEqual(snapshot["projects"][0]["status"], "Ready for submission")
+        self.assertEqual(snapshot["activity_feed"][-1]["kind"], "Project")
+        self.assertEqual(snapshot["workspace_events"][0]["event_type"], "project.updated")
+
+    def test_export_job_create_and_update_persist(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        created = self.repository.create_export_job(
+            {
+                "title": "Fresh TIFF export",
+                "detail": "Journal-ready raster package",
+                "path": "/figures/demo-figure",
+            }
+        )
+        updated = self.repository.update_export_job(
+            created["job_key"],
+            {"status": "Ready", "tone": "success"},
+        )
+
+        self.assertEqual(created["status"], "Queued")
+        self.assertIsNotNone(updated)
+        assert updated is not None
+        self.assertEqual(updated["status"], "Ready")
+
+        export_jobs = self.repository.list_export_jobs()
+        self.assertEqual(len(export_jobs), 2)
+        self.assertEqual(export_jobs[-1]["title"], "Fresh TIFF export")
+        self.assertEqual(self.repository.list_workspace_events()[0]["event_type"], "export_job.updated")
 
 
 if __name__ == "__main__":

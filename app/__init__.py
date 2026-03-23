@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from flask import Flask, abort, render_template, send_file
+from flask import Flask, abort, render_template, request, send_file
 
 from app.content import ContentService, DownloadPolicy
 from app.runtime import WorkspaceService
@@ -118,6 +118,82 @@ def create_app(
     def healthz():
         manifest_exists = service.repository.manifest_path.exists()
         workspace_db_exists = service.workspace_service.repository.db_path.exists()
-        return {"ok": True, "manifest": manifest_exists, "workspace_db": workspace_db_exists}
+        return {
+            "ok": True,
+            "manifest": manifest_exists,
+            "workspace_db": workspace_db_exists,
+            "workspace_schema_version": service.workspace_service.schema_version(),
+        }
+
+    @app.get("/api/workspace")
+    def api_workspace():
+        page = service.workspace_page()
+        return page.workspace
+
+    @app.get("/api/projects/<slug>")
+    def api_project_detail(slug: str):
+        page = service.project_page(slug)
+        if not page:
+            abort(404)
+        return {"project": page.project, "manuscript": page.manuscript}
+
+    @app.patch("/api/projects/<slug>")
+    def api_project_update(slug: str):
+        service.ensure_runtime_seeded()
+        payload = request.get_json(silent=True) or {}
+        allowed_fields = {
+            "status",
+            "tone",
+            "summary",
+            "next_review",
+            "due_date",
+            "completion",
+            "owner",
+            "target_journal",
+            "export_preset",
+            "tasks",
+            "milestones",
+            "team",
+        }
+        changes = {key: value for key, value in payload.items() if key in allowed_fields}
+        if not changes:
+            return {"error": "No updatable fields provided."}, 400
+        project = service.workspace_service.update_project(slug, changes)
+        if not project:
+            abort(404)
+        return {"project": project}
+
+    @app.get("/api/export-jobs")
+    def api_export_jobs():
+        service.ensure_runtime_seeded()
+        return {"export_jobs": service.workspace_service.list_export_jobs()}
+
+    @app.post("/api/export-jobs")
+    def api_export_job_create():
+        service.ensure_runtime_seeded()
+        payload = request.get_json(silent=True) or {}
+        try:
+            job = service.workspace_service.create_export_job(payload)
+        except ValueError as exc:
+            return {"error": str(exc)}, 400
+        return {"export_job": job}, 201
+
+    @app.patch("/api/export-jobs/<job_key>")
+    def api_export_job_update(job_key: str):
+        service.ensure_runtime_seeded()
+        payload = request.get_json(silent=True) or {}
+        allowed_fields = {"title", "status", "tone", "detail", "path"}
+        changes = {key: value for key, value in payload.items() if key in allowed_fields}
+        if not changes:
+            return {"error": "No updatable fields provided."}, 400
+        job = service.workspace_service.update_export_job(job_key, changes)
+        if not job:
+            abort(404)
+        return {"export_job": job}
+
+    @app.get("/api/workspace-events")
+    def api_workspace_events():
+        service.ensure_runtime_seeded()
+        return {"events": service.workspace_service.list_workspace_events()}
 
     return app

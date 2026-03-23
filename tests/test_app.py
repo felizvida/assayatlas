@@ -104,7 +104,9 @@ class AppRoutesTest(unittest.TestCase):
     def test_healthz(self) -> None:
         response = self.client.get("/healthz")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'"ok":true', response.data.replace(b" ", b""))
+        compact = response.data.replace(b" ", b"")
+        self.assertIn(b'"ok":true', compact)
+        self.assertIn(b'"workspace_schema_version":2', compact)
 
 
 if __name__ == "__main__":

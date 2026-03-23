@@ -1,0 +1,236 @@
+from __future__ import annotations
+
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+from app import create_app
+from app.content import ContentService, FileBackedContentRepository
+from app.runtime import PersistedWorkspaceRepository, WorkspaceService
+
+
+def make_api_manifest() -> dict:
+    return {
+        "product_name": "AssayAtlas",
+        "summary": "API test manifest",
+        "generated_at": "2026-03-23T00:00:00Z",
+        "use_cases": [
+            {
+                "order": 1,
+                "slug": "demo-figure",
+                "title": "Demo Figure",
+                "category": "Cat",
+                "analysis": "Welch t test",
+                "goal": "Goal",
+                "steps": ["1", "2", "3", "4", "5"],
+                "what_to_notice": "Notice",
+                "source_note": "Source",
+                "data_files": ["data/raw/demo.csv"],
+                "screenshot_path": "/assets/screenshots/demo.png",
+                "summary": "Summary",
+                "key_metrics": ["m1"],
+                "chart_path": "generated/charts/01-two-group-supplement-comparison.png",
+                "data_preview": [{"value": 1}],
+                "input_files": ["data/raw/demo.csv"],
+                "generated_file": None,
+                "publication_assets": {
+                    "bundle": "data/generated/publication/demo.zip",
+                    "svg": "data/generated/publication/demo.svg",
+                    "pdf": "data/generated/publication/demo.pdf",
+                    "png": "data/generated/publication/demo.png",
+                    "tiff": "data/generated/publication/demo.tiff",
+                    "caption": "data/generated/publication/demo-caption.md",
+                    "methods": "data/generated/publication/demo-methods.md",
+                    "results": "data/generated/publication/demo-results.md",
+                    "checklist": "data/generated/publication/demo-checklist.md",
+                },
+                "caption_text": "Caption",
+                "methods_text": "Methods",
+                "results_text": "Results",
+                "submission_checklist": ["check"],
+            }
+        ],
+        "workspace": {
+            "metrics": [],
+            "quick_actions": [{"label": "Open Projects", "path": "/workspace#projects", "variant": "primary"}],
+            "pinned_tasks": [{"label": "Review seeded project", "path": "/projects/demo-project", "tone": "progress"}],
+            "projects": [
+                {
+                    "slug": "demo-project",
+                    "name": "Demo Project",
+                    "status": "In review",
+                    "tone": "progress",
+                    "summary": "Seeded project summary.",
+                    "hero_chart_path": "generated/charts/01-two-group-supplement-comparison.png",
+                    "completion": 70,
+                    "figure_count": 1,
+                    "dataset_count": 1,
+                    "next_review": "Tomorrow",
+                    "team": [{"name": "Alex Doe", "role": "PI", "initials": "AD"}],
+                    "due_date": "Apr 04",
+                    "target_journal": "Nature Methods",
+                    "owner": "Alex Doe",
+                    "export_preset": "Nature",
+                    "tasks": ["Confirm caption wording"],
+                    "milestones": [{"label": "Draft figures", "state": "complete"}],
+                    "figures": [
+                        {
+                            "slug": "demo-figure",
+                            "title": "Demo Figure",
+                            "chart_path": "generated/charts/01-two-group-supplement-comparison.png",
+                            "status": "Ready",
+                            "tone": "success",
+                            "version": "v3",
+                            "next_action": "Export SVG",
+                            "owner": "Alex Doe",
+                        }
+                    ],
+                    "datasets": [{"slug": "demo-dataset", "name": "Demo Dataset", "kind": "Raw dataset", "rows": 12, "columns": 3}],
+                    "manuscript_slug": "demo-manuscript",
+                    "primary_figure_slug": "demo-figure",
+                }
+            ],
+            "manuscripts": [
+                {
+                    "slug": "demo-manuscript",
+                    "title": "Demo Manuscript",
+                    "status": "Draft ready",
+                    "tone": "progress",
+                    "narrative": "Seeded manuscript packet.",
+                    "submission_preset": "Nature",
+                    "target_journal": "Nature Methods",
+                    "due_date": "Apr 04",
+                    "project_slug": "demo-project",
+                    "project_name": "Demo Project",
+                    "figures": [
+                        {
+                            "slug": "demo-figure",
+                            "title": "Demo Figure",
+                            "chart_path": "generated/charts/01-two-group-supplement-comparison.png",
+                            "status": "Ready",
+                            "tone": "success",
+                            "version": "v3",
+                            "next_action": "Export SVG",
+                            "owner": "Alex Doe",
+                        }
+                    ],
+                    "datasets": [{"slug": "demo-dataset", "name": "Demo Dataset"}],
+                    "sections": [{"label": "Results", "state": "complete"}],
+                    "deliverables": [{"label": "Figure bundle", "state": "ready"}],
+                    "figure_progress": "1/1 figures locked",
+                }
+            ],
+            "figure_drafts": [
+                {
+                    "slug": "demo-figure",
+                    "title": "Demo Figure",
+                    "chart_path": "generated/charts/01-two-group-supplement-comparison.png",
+                    "status": "Ready",
+                    "tone": "success",
+                    "version": "v3",
+                    "summary": "Seeded draft",
+                    "project_name": "Demo Project",
+                    "project_slug": "demo-project",
+                    "manuscript_slug": "demo-manuscript",
+                    "what_to_notice": "Notice this figure.",
+                    "analysis": "Welch t test",
+                    "key_metrics": ["Metric 1"],
+                    "publication_assets": {"bundle": "data/generated/publication/demo.zip", "svg": "data/generated/publication/demo.svg"},
+                    "source_note": "Demo source",
+                    "caption_text": "Caption",
+                    "methods_text": "Methods",
+                    "results_text": "Results",
+                    "data_preview": [{"value": 1}],
+                    "next_action": "Export SVG",
+                    "owner": "Alex Doe",
+                }
+            ],
+            "datasets": [
+                {
+                    "slug": "demo-dataset",
+                    "name": "Demo Dataset",
+                    "path": "data/raw/demo.csv",
+                    "kind": "Raw dataset",
+                    "source": "Shared public dataset",
+                    "description": "Seeded dataset.",
+                    "rows": 12,
+                    "columns": 3,
+                    "updated_at": "Mar 23, 2026",
+                    "preview": [{"value": 1}],
+                    "linked_figures": [{"slug": "demo-figure", "title": "Demo Figure", "analysis": "Welch t test"}],
+                    "linked_projects": [{"slug": "demo-project", "name": "Demo Project"}],
+                    "project_count": 1,
+                    "figure_count": 1,
+                }
+            ],
+            "export_queue": [{"title": "Demo export", "status": "Queued", "tone": "warning", "detail": "SVG bundle", "path": "/figures/demo-figure"}],
+            "activity_feed": [{"title": "Demo export finished", "meta": "Today", "path": "/figures/demo-figure", "kind": "Figure"}],
+            "tutorial_library": {"count": 20, "summary": "Seeded tutorial library.", "path": "/tutorial"},
+        },
+    }
+
+
+class WorkspaceApiTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        root = Path(self.temp_dir.name)
+        manifest_path = root / "use_cases.json"
+        manifest_path.write_text(json.dumps(make_api_manifest()), encoding="utf-8")
+        content_service = ContentService(
+            repository=FileBackedContentRepository(manifest_path=manifest_path),
+            workspace_service=WorkspaceService(repository=PersistedWorkspaceRepository(root / "workspace.db")),
+        )
+        self.client = create_app(content_service=content_service).test_client()
+
+    def tearDown(self) -> None:
+        self.temp_dir.cleanup()
+
+    def test_workspace_api_returns_seeded_runtime_snapshot(self) -> None:
+        response = self.client.get("/api/workspace")
+        payload = response.get_json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload["projects"][0]["slug"], "demo-project")
+        self.assertEqual(payload["metrics"][0]["value"], "1")
+
+    def test_project_patch_updates_persisted_runtime_project(self) -> None:
+        response = self.client.patch(
+            "/api/projects/demo-project",
+            json={"status": "Ready for submission", "completion": 95},
+        )
+        payload = response.get_json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload["project"]["status"], "Ready for submission")
+        self.assertEqual(payload["project"]["completion"], 95)
+
+        read_back = self.client.get("/api/projects/demo-project").get_json()
+        self.assertEqual(read_back["project"]["status"], "Ready for submission")
+
+    def test_export_job_api_creates_and_updates_job(self) -> None:
+        create_response = self.client.post(
+            "/api/export-jobs",
+            json={
+                "title": "Fresh TIFF export",
+                "detail": "High-resolution raster package",
+                "path": "/figures/demo-figure",
+            },
+        )
+        created = create_response.get_json()["export_job"]
+
+        update_response = self.client.patch(
+            f"/api/export-jobs/{created['job_key']}",
+            json={"status": "Ready", "tone": "success"},
+        )
+        updated = update_response.get_json()["export_job"]
+        events = self.client.get("/api/workspace-events").get_json()["events"]
+
+        self.assertEqual(create_response.status_code, 201)
+        self.assertEqual(updated["status"], "Ready")
+        self.assertEqual(events[0]["event_type"], "export_job.updated")
+        self.assertEqual(self.client.get("/api/export-jobs").get_json()["export_jobs"][-1]["title"], "Fresh TIFF export")
+
+
+if __name__ == "__main__":
+    unittest.main()

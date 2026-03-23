@@ -43,6 +43,14 @@ Primary routes:
 - `/tutorial` step-by-step training view
 - `/docs` rendered documentation center
 
+Runtime API routes:
+
+- `GET /api/workspace`
+- `GET|PATCH /api/projects/<slug>`
+- `GET|POST /api/export-jobs`
+- `PATCH /api/export-jobs/<job_key>`
+- `GET /api/workspace-events`
+
 ![AssayAtlas workspace](assets/screenshots/home.png)
 
 ## Documentation
@@ -79,4 +87,5 @@ GraphPad Prism users love polished figures, approachable analysis flows, and qui
 - All tutorial outputs are generated from real public datasets or open example datasets shipped with Python packages.
 - The web app reads a generated manifest from `data/generated/use_cases.json`; rebuild it whenever you change the use-case generator.
 - The workspace runtime persists to `data/assayatlas.db` and seeds from the generated manifest the first time it needs workspace records.
+- The persisted runtime now exposes a small JSON API for workspace reads, project updates, export jobs, and workspace event history.
 - The README screenshot is produced after the app is running and the tutorial pages are captured locally.

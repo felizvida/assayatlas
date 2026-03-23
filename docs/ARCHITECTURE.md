@@ -20,10 +20,12 @@ The current implementation is a production-oriented product shell for a single s
   - Provides the persisted SQLite-backed workspace repository and service.
   - Seeds workspace entities from the generated manifest once, then serves runtime workspace records from the database.
   - Defines the first durable runtime seam between tutorial/generated content and live workspace state.
+  - Owns schema-versioned migrations, runtime write paths, export job persistence, and workspace event history.
 - `app/__init__.py`
   - Hosts the Flask app factory.
   - Serves the workspace, project, figure, dataset, manuscript, tutorial, and docs pages through the content service.
   - Exposes only allowlisted downloads rather than repo-root file access.
+  - Exposes a small JSON workspace API on top of the persisted runtime service.
 - `app/templates/*`
   - Render the SaaS-style user interface.
 - `app/static/generated/charts/*`
@@ -60,7 +62,8 @@ That keeps the repo aligned. If a use case changes, the app and docs change toge
 - Manifest and docs reads are mtime-aware, so regenerated content becomes visible without restarting the process.
 - Download access is isolated behind an allowlist, which limits exposure to generated artifacts instead of the whole repository.
 - Workspace runtime state now has a persisted repository/service seam, which decouples the workspace path from the generated manifest.
-- The test suite now mixes full-stack smoke coverage with focused unit tests for the content layer, runtime workspace repository, and manifest-builder seams.
+- The runtime now supports explicit write paths for project updates and export jobs, plus a lightweight event log.
+- The test suite now mixes full-stack smoke coverage with focused unit tests for the content layer, runtime workspace repository, runtime API, and manifest-builder seams.
 
 ## Suggested production SaaS evolution
 

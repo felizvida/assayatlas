@@ -17,6 +17,7 @@ The app now maintains a persisted workspace database at `data/assayatlas.db`.
 
 - `data/generated/use_cases.json` remains the seed source for tutorial and initial workspace content.
 - `data/assayatlas.db` is created automatically and seeded on first access to workspace records.
+- The runtime applies schema migrations automatically on startup.
 - Delete the database only if you intentionally want to reseed the workspace from the generated manifest.
 
 ## Docker build
@@ -37,7 +38,7 @@ curl http://127.0.0.1:5000/healthz
 Expected response:
 
 ```json
-{"ok": true, "manifest": true, "workspace_db": true}
+{"ok": true, "manifest": true, "workspace_db": true, "workspace_schema_version": 2}
 ```
 
 ## Regenerating tutorial content

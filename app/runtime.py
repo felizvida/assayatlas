@@ -3,12 +3,13 @@ from __future__ import annotations
 import json
 import sqlite3
 from contextlib import closing
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE_DB_PATH = ROOT / "data" / "assayatlas.db"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 class PersistedWorkspaceRepository:
@@ -18,7 +19,7 @@ class PersistedWorkspaceRepository:
     def initialize(self) -> None:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         with closing(self._connect()) as connection:
-            self._apply_schema(connection)
+            self._apply_migrations(connection)
 
     def ensure_seeded(self, workspace: dict[str, Any]) -> None:
         self.initialize()
@@ -44,6 +45,7 @@ class PersistedWorkspaceRepository:
                 "tutorial_library",
                 {"count": 0, "summary": "", "path": "/tutorial"},
             )
+            workspace_events = self._list_events(connection, limit=20)
 
         metrics = [
             {"value": str(len(projects)), "label": "active projects"},
@@ -63,7 +65,13 @@ class PersistedWorkspaceRepository:
             "export_queue": export_queue,
             "activity_feed": activity_feed,
             "tutorial_library": tutorial_library,
+            "workspace_events": workspace_events,
         }
+
+    def schema_version(self) -> int:
+        self.initialize()
+        with closing(self._connect()) as connection:
+            return self._current_schema_version(connection)
 
     def get_project(self, slug: str) -> dict[str, Any] | None:
         return self._get_payload("projects", "slug", slug)
@@ -77,19 +85,187 @@ class PersistedWorkspaceRepository:
     def get_manuscript(self, slug: str) -> dict[str, Any] | None:
         return self._get_payload("manuscripts", "slug", slug)
 
+    def list_export_jobs(self) -> list[dict[str, Any]]:
+        self.initialize()
+        with closing(self._connect()) as connection:
+            return self._list_payloads(connection, "export_jobs")
+
+    def list_workspace_events(self, limit: int = 20) -> list[dict[str, Any]]:
+        self.initialize()
+        with closing(self._connect()) as connection:
+            return self._list_events(connection, limit)
+
+    def update_project(self, slug: str, changes: dict[str, Any]) -> dict[str, Any] | None:
+        allowed_fields = {
+            "status",
+            "tone",
+            "summary",
+            "next_review",
+            "due_date",
+            "completion",
+            "owner",
+            "target_journal",
+            "export_preset",
+            "tasks",
+            "milestones",
+            "team",
+        }
+        sanitized_changes = {key: value for key, value in changes.items() if key in allowed_fields}
+        if not sanitized_changes:
+            return self.get_project(slug)
+
+        self.initialize()
+        with closing(self._connect()) as connection:
+            row = connection.execute(
+                "SELECT sort_order, payload_json FROM projects WHERE slug = ?",
+                (slug,),
+            ).fetchone()
+            if not row:
+                return None
+            payload = json.loads(row["payload_json"])
+            payload.update(sanitized_changes)
+            connection.execute(
+                "UPDATE projects SET payload_json = ? WHERE slug = ?",
+                (json.dumps(payload), slug),
+            )
+            event_time = self._timestamp()
+            self._append_activity_item(
+                connection,
+                {
+                    "title": f"{payload['name']} updated",
+                    "meta": event_time,
+                    "path": f"/projects/{slug}",
+                    "kind": "Project",
+                },
+            )
+            self._append_workspace_event(
+                connection,
+                event_type="project.updated",
+                subject_key=slug,
+                payload={"changes": sanitized_changes, "project_name": payload["name"]},
+            )
+            connection.commit()
+            return payload
+
+    def create_export_job(self, payload: dict[str, Any]) -> dict[str, Any]:
+        required = {"title", "detail", "path"}
+        missing = sorted(required - payload.keys())
+        if missing:
+            raise ValueError(f"Missing required export job fields: {', '.join(missing)}")
+
+        self.initialize()
+        with closing(self._connect()) as connection:
+            sort_order = self._next_sort_order(connection, "export_jobs")
+            job_key = payload.get("job_key") or f"export-{sort_order}-{self._slugify(payload['title'])}"
+            job = {
+                "job_key": job_key,
+                "title": payload["title"],
+                "status": payload.get("status", "Queued"),
+                "tone": payload.get("tone", "warning"),
+                "detail": payload["detail"],
+                "path": payload["path"],
+            }
+            connection.execute(
+                "INSERT INTO export_jobs(job_key, sort_order, payload_json) VALUES (?, ?, ?)",
+                (job_key, sort_order, json.dumps(job)),
+            )
+            event_time = self._timestamp()
+            self._append_activity_item(
+                connection,
+                {
+                    "title": f"{job['title']} queued",
+                    "meta": event_time,
+                    "path": job["path"],
+                    "kind": "Export",
+                },
+            )
+            self._append_workspace_event(
+                connection,
+                event_type="export_job.created",
+                subject_key=job_key,
+                payload=job,
+            )
+            connection.commit()
+            return job
+
+    def update_export_job(self, job_key: str, changes: dict[str, Any]) -> dict[str, Any] | None:
+        allowed_fields = {"title", "status", "tone", "detail", "path"}
+        sanitized_changes = {key: value for key, value in changes.items() if key in allowed_fields}
+        if not sanitized_changes:
+            with closing(self._connect()) as connection:
+                row = connection.execute(
+                    "SELECT payload_json FROM export_jobs WHERE job_key = ?",
+                    (job_key,),
+                ).fetchone()
+            return json.loads(row["payload_json"]) if row else None
+
+        self.initialize()
+        with closing(self._connect()) as connection:
+            row = connection.execute(
+                "SELECT payload_json FROM export_jobs WHERE job_key = ?",
+                (job_key,),
+            ).fetchone()
+            if not row:
+                return None
+            payload = json.loads(row["payload_json"])
+            payload.update(sanitized_changes)
+            connection.execute(
+                "UPDATE export_jobs SET payload_json = ? WHERE job_key = ?",
+                (json.dumps(payload), job_key),
+            )
+            event_time = self._timestamp()
+            self._append_activity_item(
+                connection,
+                {
+                    "title": f"{payload['title']} marked {payload['status']}",
+                    "meta": event_time,
+                    "path": payload["path"],
+                    "kind": "Export",
+                },
+            )
+            self._append_workspace_event(
+                connection,
+                event_type="export_job.updated",
+                subject_key=job_key,
+                payload={"changes": sanitized_changes, "job": payload},
+            )
+            connection.commit()
+            return payload
+
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.db_path)
         connection.row_factory = sqlite3.Row
         return connection
 
-    def _apply_schema(self, connection: sqlite3.Connection) -> None:
-        connection.executescript(
+    def _apply_migrations(self, connection: sqlite3.Connection) -> None:
+        connection.execute(
             """
             CREATE TABLE IF NOT EXISTS schema_meta (
                 key TEXT PRIMARY KEY,
                 value TEXT NOT NULL
-            );
+            )
+            """
+        )
+        current_version = self._current_schema_version(connection)
+        for version in range(current_version + 1, SCHEMA_VERSION + 1):
+            migration = getattr(self, f"_migrate_to_v{version}")
+            migration(connection)
+            connection.execute(
+                "INSERT OR REPLACE INTO schema_meta(key, value) VALUES (?, ?)",
+                ("schema_version", str(version)),
+            )
+        connection.commit()
 
+    def _current_schema_version(self, connection: sqlite3.Connection) -> int:
+        row = connection.execute(
+            "SELECT value FROM schema_meta WHERE key = ?",
+            ("schema_version",),
+        ).fetchone()
+        return int(row["value"]) if row else 0
+
+    def _migrate_to_v1(self, connection: sqlite3.Connection) -> None:
+        connection.executescript(
+            """
             CREATE TABLE IF NOT EXISTS workspace_meta (
                 key TEXT PRIMARY KEY,
                 payload_json TEXT NOT NULL
@@ -132,15 +308,23 @@ class PersistedWorkspaceRepository:
             );
             """
         )
+
+    def _migrate_to_v2(self, connection: sqlite3.Connection) -> None:
         connection.execute(
-            "INSERT OR REPLACE INTO schema_meta(key, value) VALUES (?, ?)",
-            ("schema_version", str(SCHEMA_VERSION)),
+            """
+            CREATE TABLE IF NOT EXISTS workspace_events (
+                event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_type TEXT NOT NULL,
+                subject_key TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+            """
         )
-        connection.commit()
 
     def _seed_workspace(self, connection: sqlite3.Connection, workspace: dict[str, Any]) -> None:
         connection.execute("DELETE FROM workspace_meta")
-        for table in ("projects", "datasets", "figure_drafts", "manuscripts", "export_jobs", "activity_feed"):
+        for table in ("projects", "datasets", "figure_drafts", "manuscripts", "export_jobs", "activity_feed", "workspace_events"):
             connection.execute(f"DELETE FROM {table}")
 
         self._store_meta(connection, "quick_actions", workspace.get("quick_actions", []))
@@ -202,6 +386,26 @@ class PersistedWorkspaceRepository:
         ).fetchall()
         return [json.loads(row["payload_json"]) for row in rows]
 
+    def _list_events(self, connection: sqlite3.Connection, limit: int) -> list[dict[str, Any]]:
+        rows = connection.execute(
+            """
+            SELECT event_type, subject_key, payload_json, created_at
+            FROM workspace_events
+            ORDER BY event_id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+        return [
+            {
+                "event_type": row["event_type"],
+                "subject_key": row["subject_key"],
+                "created_at": row["created_at"],
+                "payload": json.loads(row["payload_json"]),
+            }
+            for row in rows
+        ]
+
     def _get_payload(self, table: str, key_column: str, key: str) -> dict[str, Any] | None:
         self.initialize()
         with closing(self._connect()) as connection:
@@ -212,6 +416,40 @@ class PersistedWorkspaceRepository:
         if not row:
             return None
         return json.loads(row["payload_json"])
+
+    def _next_sort_order(self, connection: sqlite3.Connection, table: str) -> int:
+        row = connection.execute(f"SELECT COALESCE(MAX(sort_order), -1) AS max_sort_order FROM {table}").fetchone()
+        return int(row["max_sort_order"]) + 1
+
+    def _append_activity_item(self, connection: sqlite3.Connection, item: dict[str, Any]) -> None:
+        sort_order = self._next_sort_order(connection, "activity_feed")
+        feed_key = f"activity-{sort_order}-{self._slugify(item['title'])}"
+        connection.execute(
+            "INSERT INTO activity_feed(feed_key, sort_order, payload_json) VALUES (?, ?, ?)",
+            (feed_key, sort_order, json.dumps(item)),
+        )
+
+    def _append_workspace_event(
+        self,
+        connection: sqlite3.Connection,
+        *,
+        event_type: str,
+        subject_key: str,
+        payload: dict[str, Any],
+    ) -> None:
+        connection.execute(
+            """
+            INSERT INTO workspace_events(event_type, subject_key, payload_json, created_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            (event_type, subject_key, json.dumps(payload), self._timestamp()),
+        )
+
+    def _slugify(self, value: str) -> str:
+        return "-".join("".join(char.lower() if char.isalnum() else " " for char in value).split()) or "item"
+
+    def _timestamp(self) -> str:
+        return datetime.now(UTC).isoformat(timespec="seconds")
 
 
 class WorkspaceService:
@@ -235,3 +473,21 @@ class WorkspaceService:
 
     def get_manuscript(self, slug: str) -> dict[str, Any] | None:
         return self.repository.get_manuscript(slug)
+
+    def schema_version(self) -> int:
+        return self.repository.schema_version()
+
+    def list_export_jobs(self) -> list[dict[str, Any]]:
+        return self.repository.list_export_jobs()
+
+    def list_workspace_events(self, limit: int = 20) -> list[dict[str, Any]]:
+        return self.repository.list_workspace_events(limit)
+
+    def update_project(self, slug: str, changes: dict[str, Any]) -> dict[str, Any] | None:
+        return self.repository.update_project(slug, changes)
+
+    def create_export_job(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self.repository.create_export_job(payload)
+
+    def update_export_job(self, job_key: str, changes: dict[str, Any]) -> dict[str, Any] | None:
+        return self.repository.update_export_job(job_key, changes)
