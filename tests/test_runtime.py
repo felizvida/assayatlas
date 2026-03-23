@@ -197,6 +197,26 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
         self.assertEqual(snapshot["activity_feed"][-1]["kind"], "Project")
         self.assertEqual(snapshot["workspace_events"][0]["event_type"], "project.updated")
 
+    def test_project_create_persists_and_emits_event(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        created = self.repository.create_project(
+            {
+                "name": "Immune Signaling Atlas",
+                "owner": "Maya Singh",
+                "target_journal": "Nature Immunology",
+                "summary": "A fresh project shell for a cytokine signaling study.",
+            }
+        )
+
+        self.assertEqual(created["slug"], "immune-signaling-atlas")
+        self.assertEqual(created["status"], "Draft setup")
+        self.assertEqual(created["figure_count"], 0)
+
+        snapshot = self.repository.workspace_snapshot()
+        self.assertEqual(snapshot["projects"][-1]["slug"], "immune-signaling-atlas")
+        self.assertEqual(snapshot["workspace_events"][0]["event_type"], "project.created")
+
     def test_export_job_create_and_update_persist(self) -> None:
         self.repository.ensure_seeded(self.workspace)
 

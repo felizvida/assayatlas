@@ -210,6 +210,30 @@ class WorkspaceApiTest(unittest.TestCase):
         self.assertEqual(read_back["project"]["name"], "Demo Project Updated")
         self.assertEqual(read_back["project"]["status"], "Ready for submission")
 
+    def test_project_post_creates_persisted_runtime_project(self) -> None:
+        response = self.client.post(
+            "/api/projects",
+            json={
+                "name": "Immune Signaling Atlas",
+                "owner": "Maya Singh",
+                "target_journal": "Nature Immunology",
+                "summary": "A fresh project shell for a cytokine signaling study.",
+            },
+        )
+        payload = response.get_json()
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(payload["project"]["slug"], "immune-signaling-atlas")
+        self.assertEqual(payload["location"], "/projects/immune-signaling-atlas")
+
+        read_back = self.client.get("/api/projects/immune-signaling-atlas").get_json()
+        self.assertEqual(read_back["project"]["owner"], "Maya Singh")
+        self.assertIsNone(read_back["manuscript"])
+
+        html_response = self.client.get("/projects/immune-signaling-atlas")
+        self.assertEqual(html_response.status_code, 200)
+        self.assertIn(b"No figure drafts linked yet.", html_response.data)
+
     def test_export_job_api_creates_and_updates_job(self) -> None:
         create_response = self.client.post(
             "/api/export-jobs",

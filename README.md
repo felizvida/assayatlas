@@ -5,7 +5,7 @@
 
 AssayAtlas is a production-oriented SaaS-style GraphPad Prism alternative built around one promise: publication-grade figures should be the default output, not the last mile.
 
-Current release preparation is tracked in [docs/releases/v0.1.1.md](docs/releases/v0.1.1.md).
+Current release notes are in [docs/releases/v0.1.1.md](docs/releases/v0.1.1.md).
 
 This repository ships a runnable product shell with:
 
@@ -14,6 +14,7 @@ This repository ships a runnable product shell with:
 - a persisted SQLite workspace runtime seeded from the generated manifest on first boot,
 - inline editors on project, dataset, figure, and manuscript pages backed by the persisted runtime API,
 - a workspace export queue manager that can create and update delivery jobs in place,
+- a project-creation workflow in `/workspace` that opens a new persisted study shell immediately,
 - generated analysis artifacts and polished chart assets,
 - a hand-held training tutorial with step-by-step instructions,
 - and a Flask web app with a landing page, workspace, docs center, tutorial, and manuscript export flow.
@@ -50,6 +51,7 @@ Primary routes:
 Runtime API routes:
 
 - `GET /api/workspace`
+- `POST /api/projects`
 - `GET|PATCH /api/projects/<slug>`
 - `GET|PATCH /api/datasets/<slug>`
 - `GET|PATCH /api/figures/<slug>`
@@ -104,6 +106,7 @@ GraphPad Prism users love polished figures, approachable analysis flows, and qui
 - The workspace runtime persists to `data/assayatlas.db` and seeds from the generated manifest the first time it needs workspace records.
 - The persisted runtime now exposes a small JSON API for workspace reads, project updates, figure/manuscript edits, export jobs, and workspace event history.
 - The workspace now uses that export-job API directly so users can queue and advance export work without leaving `/workspace`.
+- The workspace can now create new persisted project shells directly, so product growth is no longer limited to the seeded manifest inventory.
 - Runtime entities now pass through typed record models before they are stored or rehydrated, which keeps repository changes more isolated from route and template code.
 - Standard browser requests to `/favicon.ico` are now served directly to avoid stray 404s during demos and review sessions.
 - The README screenshot is produced after the app is running and the tutorial pages are captured locally.

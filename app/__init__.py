@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flask import Flask, abort, render_template, request, send_file
+from flask import Flask, abort, render_template, request, send_file, url_for
 
 from app.content import ContentService, DownloadPolicy
 from app.runtime import WorkspaceService
@@ -142,6 +142,16 @@ def create_app(
         if not page:
             abort(404)
         return {"project": page.project, "manuscript": page.manuscript}
+
+    @app.post("/api/projects")
+    def api_project_create():
+        service.ensure_runtime_seeded()
+        payload = request.get_json(silent=True) or {}
+        try:
+            project = service.workspace_service.create_project(payload)
+        except ValueError as exc:
+            return {"error": str(exc)}, 400
+        return {"project": project, "location": url_for("project_detail", slug=project["slug"])}, 201
 
     @app.get("/api/figures/<slug>")
     def api_figure_detail(slug: str):

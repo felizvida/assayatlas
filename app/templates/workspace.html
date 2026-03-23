@@ -45,6 +45,67 @@
       </div>
       <p class="section-copy">Each project tracks figures, datasets, manuscript state, and next-review actions in one place.</p>
     </div>
+    <div class="workspace-card create-project-card">
+      <div class="card-heading">
+        <div>
+          <h2>Create Project Workspace</h2>
+          <span class="muted">Start a new study shell in the persisted runtime and open it immediately.</span>
+        </div>
+        <span class="pill pill-neutral">Runtime write path</span>
+      </div>
+      <form class="editor-form" data-project-create-form data-endpoint="{{ url_for('api_project_create') }}">
+        <div class="form-grid">
+          <label class="field-label">
+            <span>Project name</span>
+            <input class="field-input" type="text" name="name" value="" placeholder="Immune Signaling Response Atlas" required>
+          </label>
+          <label class="field-label">
+            <span>Owner</span>
+            <input class="field-input" type="text" name="owner" value="" placeholder="Maya Singh" required>
+          </label>
+          <label class="field-label">
+            <span>Status</span>
+            <input class="field-input" type="text" name="status" value="Draft setup">
+          </label>
+          <label class="field-label">
+            <span>Tone</span>
+            <select class="field-input" name="tone">
+              <option value="progress" selected>Progress</option>
+              <option value="success">Success</option>
+              <option value="warning">Warning</option>
+              <option value="neutral">Neutral</option>
+            </select>
+          </label>
+          <label class="field-label">
+            <span>Target journal</span>
+            <input class="field-input" type="text" name="target_journal" value="" placeholder="Nature Immunology">
+          </label>
+          <label class="field-label">
+            <span>Due date</span>
+            <input class="field-input" type="text" name="due_date" value="" placeholder="Apr 30">
+          </label>
+          <label class="field-label">
+            <span>Next review</span>
+            <input class="field-input" type="text" name="next_review" value="Not scheduled">
+          </label>
+          <label class="field-label">
+            <span>Export preset</span>
+            <input class="field-input" type="text" name="export_preset" value="General submission">
+          </label>
+          <label class="field-label field-label-wide">
+            <span>Summary</span>
+            <textarea class="field-input field-textarea" name="summary" rows="3" placeholder="Describe the biological question, main assay, and what the first publication figure should prove."></textarea>
+          </label>
+        </div>
+        <div class="editor-toolbar">
+          <p class="editor-status" data-project-create-status data-state="neutral">Ready to create a new persisted project workspace.</p>
+          <div class="hero-actions editor-actions">
+            <button class="btn btn-primary" type="submit">Create Project Workspace</button>
+            <button class="btn btn-secondary" type="reset">Reset Form</button>
+          </div>
+        </div>
+      </form>
+    </div>
     <div class="project-grid">
       {% for project in workspace.projects %}
         <article class="project-card">
@@ -412,5 +473,6 @@
   </section>
 {% endblock %}
 {% block extra_scripts %}
+  <script src="{{ url_for('static', filename='workspace_projects.js') }}"></script>
   <script src="{{ url_for('static', filename='workspace_exports.js') }}"></script>
 {% endblock %}

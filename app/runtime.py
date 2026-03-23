@@ -187,6 +187,90 @@ class PersistedWorkspaceRepository:
             connection.commit()
             return record.to_payload()
 
+    def create_project(self, payload: dict[str, Any]) -> dict[str, Any]:
+        if not payload.get("name"):
+            raise ValueError("Missing required project field: name")
+
+        allowed_fields = {
+            "slug",
+            "name",
+            "status",
+            "tone",
+            "summary",
+            "hero_chart_path",
+            "completion",
+            "figure_count",
+            "dataset_count",
+            "next_review",
+            "team",
+            "due_date",
+            "target_journal",
+            "owner",
+            "export_preset",
+            "tasks",
+            "milestones",
+            "figures",
+            "datasets",
+            "manuscript_slug",
+            "primary_figure_slug",
+        }
+        sanitized_payload = {key: value for key, value in payload.items() if key in allowed_fields}
+
+        self.initialize()
+        with closing(self._connect()) as connection:
+            sort_order = self._next_sort_order(connection, PROJECT_SPEC.table)
+            base_slug = sanitized_payload.get("slug") or self._slugify(str(sanitized_payload["name"]))
+            project_slug = self._ensure_unique_key(connection, PROJECT_SPEC, base_slug)
+            project_payload = {
+                "slug": project_slug,
+                "name": sanitized_payload["name"],
+                "status": sanitized_payload.get("status", "Draft setup"),
+                "tone": sanitized_payload.get("tone", "progress"),
+                "summary": sanitized_payload.get("summary", "New project workspace ready for figures, datasets, and manuscript planning."),
+                "hero_chart_path": sanitized_payload.get("hero_chart_path", "generated/charts/20-publication-figure-board.png"),
+                "completion": sanitized_payload.get("completion", 0),
+                "figure_count": sanitized_payload.get("figure_count", 0),
+                "dataset_count": sanitized_payload.get("dataset_count", 0),
+                "next_review": sanitized_payload.get("next_review", "Not scheduled"),
+                "team": sanitized_payload.get("team", []),
+                "due_date": sanitized_payload.get("due_date", "TBD"),
+                "target_journal": sanitized_payload.get("target_journal", "Unassigned"),
+                "owner": sanitized_payload.get("owner", "Unassigned"),
+                "export_preset": sanitized_payload.get("export_preset", "General submission"),
+                "tasks": sanitized_payload.get("tasks", ["Define the first figure draft"]),
+                "milestones": sanitized_payload.get("milestones", [{"label": "Project shell created", "state": "complete"}]),
+                "figures": sanitized_payload.get("figures", []),
+                "datasets": sanitized_payload.get("datasets", []),
+                "manuscript_slug": sanitized_payload.get("manuscript_slug"),
+                "primary_figure_slug": sanitized_payload.get("primary_figure_slug"),
+            }
+            record = ProjectRecord.from_payload(project_payload)
+            connection.execute(
+                "INSERT INTO projects(slug, sort_order, payload_json) VALUES (?, ?, ?)",
+                (record.slug, sort_order, json.dumps(record.to_payload())),
+            )
+            event_time = self._timestamp()
+            self._append_activity_item(
+                connection,
+                ActivityItemRecord(
+                    title=f"{record.name} created",
+                    meta=event_time,
+                    path=f"/projects/{record.slug}",
+                    kind="Project",
+                ),
+            )
+            self._append_workspace_event(
+                connection,
+                WorkspaceEventRecord(
+                    event_type="project.created",
+                    subject_key=record.slug,
+                    created_at=event_time,
+                    payload=record.to_payload(),
+                ),
+            )
+            connection.commit()
+            return record.to_payload()
+
     def update_dataset(self, slug: str, changes: dict[str, Any]) -> dict[str, Any] | None:
         allowed_fields = {
             "name",
@@ -611,6 +695,17 @@ class PersistedWorkspaceRepository:
         row = connection.execute(f"SELECT COALESCE(MAX(sort_order), -1) AS max_sort_order FROM {table}").fetchone()
         return int(row["max_sort_order"]) + 1
 
+    def _ensure_unique_key(self, connection: sqlite3.Connection, spec: EntitySpec, key: str) -> str:
+        candidate = key
+        suffix = 1
+        while connection.execute(
+            f"SELECT 1 FROM {spec.table} WHERE {spec.key_column} = ?",
+            (candidate,),
+        ).fetchone():
+            suffix += 1
+            candidate = f"{key}-{suffix}"
+        return candidate
+
     def _append_activity_item(self, connection: sqlite3.Connection, item: ActivityItemRecord) -> None:
         sort_order = self._next_sort_order(connection, ACTIVITY_FEED_SPEC.table)
         feed_key = item.feed_key or f"activity-{sort_order}-{self._slugify(item.title)}"
@@ -669,6 +764,9 @@ class WorkspaceService:
 
     def update_project(self, slug: str, changes: dict[str, Any]) -> dict[str, Any] | None:
         return self.repository.update_project(slug, changes)
+
+    def create_project(self, payload: dict[str, Any]) -> dict[str, Any]:
+        return self.repository.create_project(payload)
 
     def update_figure(self, slug: str, changes: dict[str, Any]) -> dict[str, Any] | None:
         return self.repository.update_figure(slug, changes)

@@ -40,6 +40,7 @@ class AppRoutesTest(unittest.TestCase):
         self.assertIn(b"Project command center", response.data)
         self.assertIn(b"Active workspaces, not tutorial cards", response.data)
         self.assertIn(b"Queue New Export", response.data)
+        self.assertIn(b"Create Project Workspace", response.data)
 
     def test_tutorial_renders(self) -> None:
         response = self.client.get("/tutorial")

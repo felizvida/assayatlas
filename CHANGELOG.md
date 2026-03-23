@@ -2,9 +2,9 @@
 
 All notable changes to AssayAtlas will be documented in this file.
 
-## v0.1.1 (release candidate)
+## v0.1.1
 
-Prepared on March 23, 2026.
+Released on March 23, 2026.
 
 ### Added
 
@@ -15,6 +15,7 @@ Prepared on March 23, 2026.
 - A lightweight workspace event log to make runtime changes more inspectable.
 - Inline editing panels on project, dataset, figure, and manuscript detail pages, backed by the persisted runtime API.
 - An actionable workspace export queue manager that can create and update export jobs in place.
+- A workspace project-creation flow backed by the persisted runtime API, so new study shells can be created without touching the tutorial manifest.
 - Focused runtime and API tests so feature-level refactors no longer depend only on full-page smoke coverage.
 
 ### Changed
