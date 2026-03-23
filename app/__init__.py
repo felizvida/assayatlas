@@ -3,14 +3,16 @@ from __future__ import annotations
 from flask import Flask, abort, render_template, send_file
 
 from app.content import ContentService, DownloadPolicy
+from app.runtime import WorkspaceService
 
 
 def create_app(
     content_service: ContentService | None = None,
     download_policy: DownloadPolicy | None = None,
+    workspace_service: WorkspaceService | None = None,
 ) -> Flask:
     app = Flask(__name__, template_folder="templates", static_folder="static")
-    service = content_service or ContentService()
+    service = content_service or ContentService(workspace_service=workspace_service)
     downloads = download_policy or DownloadPolicy()
 
     @app.context_processor
@@ -115,6 +117,7 @@ def create_app(
     @app.get("/healthz")
     def healthz():
         manifest_exists = service.repository.manifest_path.exists()
-        return {"ok": True, "manifest": manifest_exists}
+        workspace_db_exists = service.workspace_service.repository.db_path.exists()
+        return {"ok": True, "manifest": manifest_exists, "workspace_db": workspace_db_exists}
 
     return app

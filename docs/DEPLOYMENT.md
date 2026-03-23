@@ -11,6 +11,14 @@ python3 -m venv .venv
 
 The app listens on `127.0.0.1:5000`.
 
+## Runtime state
+
+The app now maintains a persisted workspace database at `data/assayatlas.db`.
+
+- `data/generated/use_cases.json` remains the seed source for tutorial and initial workspace content.
+- `data/assayatlas.db` is created automatically and seeded on first access to workspace records.
+- Delete the database only if you intentionally want to reseed the workspace from the generated manifest.
+
 ## Docker build
 
 ```bash
@@ -47,8 +55,16 @@ This rebuilds:
 - the real-data tutorial,
 - and the use-case catalog.
 
+If you want the persisted workspace to reseed from the regenerated manifest:
+
+```bash
+rm -f data/assayatlas.db
+./.venv/bin/python run.py
+```
+
 ## Roll-forward notes
 
 - Keep `data/raw/` under version control so CI and local builds stay deterministic.
 - Rebuild generated assets after any use-case or visual-style change.
+- Keep `data/assayatlas.db` out of version control; it is runtime state, not a source artifact.
 - Capture fresh screenshots after UI changes so the tutorial remains truthful.

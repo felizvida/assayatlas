@@ -2,19 +2,32 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 from app import create_app
+from app.content import ContentService
+from app.runtime import PersistedWorkspaceRepository, WorkspaceService
 
 ROOT = Path(__file__).resolve().parents[1]
+MANIFEST_PATH = ROOT / "data" / "generated" / "use_cases.json"
 
 
 class AppRoutesTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        subprocess.run([sys.executable, "scripts/build_examples.py"], cwd=ROOT, check=True)
-        cls.client = create_app().test_client()
+        if not MANIFEST_PATH.exists():
+            subprocess.run([sys.executable, "scripts/build_examples.py"], cwd=ROOT, check=True)
+        cls.temp_dir = tempfile.TemporaryDirectory()
+        workspace_repo = PersistedWorkspaceRepository(Path(cls.temp_dir.name) / "assayatlas-test.db")
+        workspace_service = WorkspaceService(repository=workspace_repo)
+        content_service = ContentService(workspace_service=workspace_service)
+        cls.client = create_app(content_service=content_service).test_client()
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.temp_dir.cleanup()
 
     def test_homepage_renders(self) -> None:
         response = self.client.get("/")

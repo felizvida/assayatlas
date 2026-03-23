@@ -1,6 +1,6 @@
 {
   "product_name": "AssayAtlas",
-  "generated_at": "2026-03-18T15:35:43.807593+00:00",
+  "generated_at": "2026-03-23T15:26:18.188717+00:00",
   "summary": "A production-oriented GraphPad Prism alternative with a real workspace for projects, datasets, manuscripts, exports, and a separate tutorial library framed around biomedical wet-lab workflows.",
   "use_cases": [
     {
@@ -7685,7 +7685,7 @@
         "description": "Derived table available to multiple projects and linked to 1 figure draft(s).",
         "rows": 20,
         "columns": 3,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "len": 4.2,
@@ -7743,7 +7743,7 @@
         "description": "Raw dataset available to multiple projects and linked to 1 figure draft(s).",
         "rows": 6,
         "columns": 2,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "Time": 1,
@@ -7795,7 +7795,7 @@
         "description": "Raw dataset available to multiple projects and linked to 1 figure draft(s).",
         "rows": 66,
         "columns": 4,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "rownames": 1,
@@ -7859,7 +7859,7 @@
         "description": "Raw dataset available to multiple projects and linked to 1 figure draft(s).",
         "rows": 35,
         "columns": 4,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "rownames": 1,
@@ -7923,7 +7923,7 @@
         "description": "Raw dataset available to multiple projects and linked to 1 figure draft(s).",
         "rows": 30,
         "columns": 2,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "weight": 4.17,
@@ -7975,7 +7975,7 @@
         "description": "Raw dataset available to multiple projects and linked to 1 figure draft(s).",
         "rows": 23,
         "columns": 3,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "conc": 0.02,
@@ -8033,7 +8033,7 @@
         "description": "Raw dataset available to multiple projects and linked to 1 figure draft(s).",
         "rows": 132,
         "columns": 6,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "rownames": 1,
@@ -8109,7 +8109,7 @@
         "description": "Raw dataset available to multiple projects and linked to 1 figure draft(s).",
         "rows": 32,
         "columns": 5,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "Class": "1st",
@@ -8179,7 +8179,7 @@
         "description": "Raw dataset available to multiple projects and linked to 2 figure draft(s).",
         "rows": 60,
         "columns": 3,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "len": 4.2,
@@ -8242,7 +8242,7 @@
         "description": "Raw dataset available to multiple projects and linked to 1 figure draft(s).",
         "rows": 153,
         "columns": 6,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "Ozone": 41.0,
@@ -8318,7 +8318,7 @@
         "description": "Raw dataset available to multiple projects and linked to 1 figure draft(s).",
         "rows": 88,
         "columns": 5,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "agegp": "25-34",
@@ -8388,7 +8388,7 @@
         "description": "Raw dataset available to multiple projects and linked to 3 figure draft(s).",
         "rows": 150,
         "columns": 5,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "Sepal.Length": 5.1,
@@ -8472,7 +8472,7 @@
         "description": "Raw dataset available to multiple projects and linked to 1 figure draft(s).",
         "rows": 432,
         "columns": 9,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "week": 20,
@@ -8566,7 +8566,7 @@
         "description": "Raw dataset available to multiple projects and linked to 1 figure draft(s).",
         "rows": 20,
         "columns": 3,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "extra": 0.7,
@@ -8619,7 +8619,7 @@
         "description": "Raw dataset available to multiple projects and linked to 1 figure draft(s).",
         "rows": 31,
         "columns": 3,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "Girth": 8.3,
@@ -8677,7 +8677,7 @@
         "description": "Raw dataset available to multiple projects and linked to 1 figure draft(s).",
         "rows": 163,
         "columns": 3,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "T": 6.0,
@@ -8735,7 +8735,7 @@
         "description": "Raw dataset available to multiple projects and linked to 1 figure draft(s).",
         "rows": 54,
         "columns": 3,
-        "updated_at": "Mar 18, 2026",
+        "updated_at": "Mar 23, 2026",
         "preview": [
           {
             "breaks": 26,

@@ -9,6 +9,7 @@ This repository ships a runnable product shell with:
 
 - a true SaaS-style workspace for projects, figures, datasets, manuscripts, and exports,
 - 20 guided, real-data tutorial use cases kept separate from the workspace,
+- a persisted SQLite workspace runtime seeded from the generated manifest on first boot,
 - generated analysis artifacts and polished chart assets,
 - a hand-held training tutorial with step-by-step instructions,
 - and a Flask web app with a landing page, workspace, docs center, tutorial, and manuscript export flow.
@@ -51,6 +52,7 @@ Primary routes:
 - Publication workflow: `docs/PUBLICATION_WORKFLOW.md`
 - Architecture: `docs/ARCHITECTURE.md`
 - Deployment: `docs/DEPLOYMENT.md`
+- Modernization plan: `docs/MODERNIZATION_PLAN.md`
 - Contributing: `CONTRIBUTING.md`
 - Security policy: `SECURITY.md`
 
@@ -76,4 +78,5 @@ GraphPad Prism users love polished figures, approachable analysis flows, and qui
 
 - All tutorial outputs are generated from real public datasets or open example datasets shipped with Python packages.
 - The web app reads a generated manifest from `data/generated/use_cases.json`; rebuild it whenever you change the use-case generator.
+- The workspace runtime persists to `data/assayatlas.db` and seeds from the generated manifest the first time it needs workspace records.
 - The README screenshot is produced after the app is running and the tutorial pages are captured locally.

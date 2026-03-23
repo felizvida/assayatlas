@@ -4,3 +4,4 @@ __pycache__/
 .mplconfig/
 .pydataset/
 .DS_Store
+data/*.db

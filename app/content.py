@@ -8,6 +8,8 @@ from typing import Any
 import markdown
 from markupsafe import Markup
 
+from app.runtime import WorkspaceService
+
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT / "data" / "generated" / "use_cases.json"
 
@@ -282,8 +284,18 @@ class DownloadPolicy:
 
 
 class ContentService:
-    def __init__(self, repository: FileBackedContentRepository | None = None) -> None:
+    def __init__(
+        self,
+        repository: FileBackedContentRepository | None = None,
+        workspace_service: WorkspaceService | None = None,
+    ) -> None:
         self.repository = repository or FileBackedContentRepository()
+        self.workspace_service = workspace_service or WorkspaceService()
+
+    def _ensure_workspace_seeded(self) -> ManifestSnapshot:
+        manifest = self.repository.manifest()
+        self.workspace_service.ensure_seeded(manifest.workspace)
+        return manifest
 
     def site_globals(self) -> SiteGlobals:
         manifest = self.repository.manifest()
@@ -329,43 +341,51 @@ class ContentService:
         )
 
     def workspace_page(self) -> WorkspacePageContext:
-        manifest = self.repository.manifest()
-        return WorkspacePageContext(workspace=manifest.workspace)
+        self._ensure_workspace_seeded()
+        return WorkspacePageContext(workspace=self.workspace_service.workspace_snapshot())
 
     def project_page(self, slug: str) -> ProjectPageContext | None:
-        manifest = self.repository.manifest()
-        project = manifest.get_project(slug)
+        manifest = self._ensure_workspace_seeded()
+        project = self.workspace_service.get_project(slug) or manifest.get_project(slug)
         if not project:
             return None
-        manuscript = manifest.get_manuscript(project["manuscript_slug"]) if project["manuscript_slug"] else None
+        manuscript = (
+            self.workspace_service.get_manuscript(project["manuscript_slug"]) or manifest.get_manuscript(project["manuscript_slug"])
+            if project["manuscript_slug"]
+            else None
+        )
         return ProjectPageContext(project=project, manuscript=manuscript)
 
     def dataset_page(self, slug: str) -> DatasetPageContext | None:
-        manifest = self.repository.manifest()
-        dataset = manifest.get_dataset(slug)
+        manifest = self._ensure_workspace_seeded()
+        dataset = self.workspace_service.get_dataset(slug) or manifest.get_dataset(slug)
         if not dataset:
             return None
         return DatasetPageContext(dataset=dataset)
 
     def manuscript_page(self, slug: str) -> ManuscriptPageContext | None:
-        manifest = self.repository.manifest()
-        manuscript = manifest.get_manuscript(slug)
+        manifest = self._ensure_workspace_seeded()
+        manuscript = self.workspace_service.get_manuscript(slug) or manifest.get_manuscript(slug)
         if not manuscript:
             return None
-        project = manifest.get_project(manuscript["project_slug"])
+        project = self.workspace_service.get_project(manuscript["project_slug"]) or manifest.get_project(manuscript["project_slug"])
         if not project:
             return None
         return ManuscriptPageContext(manuscript=manuscript, project=project)
 
     def figure_page(self, slug: str) -> FigurePageContext | None:
-        manifest = self.repository.manifest()
-        figure = manifest.get_figure(slug)
+        manifest = self._ensure_workspace_seeded()
+        figure = self.workspace_service.get_figure(slug) or manifest.get_figure(slug)
         if not figure:
             return None
-        project = manifest.get_project(figure["project_slug"])
+        project = self.workspace_service.get_project(figure["project_slug"]) or manifest.get_project(figure["project_slug"])
         if not project:
             return None
-        manuscript = manifest.get_manuscript(figure["manuscript_slug"]) if figure["manuscript_slug"] else None
+        manuscript = (
+            self.workspace_service.get_manuscript(figure["manuscript_slug"]) or manifest.get_manuscript(figure["manuscript_slug"])
+            if figure["manuscript_slug"]
+            else None
+        )
         return FigurePageContext(figure=figure, project=project, manuscript=manuscript)
 
     def tutorial_page(self) -> TutorialPageContext:
