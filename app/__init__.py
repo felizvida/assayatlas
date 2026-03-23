@@ -150,6 +150,13 @@ def create_app(
             abort(404)
         return {"figure": page.figure, "project": page.project, "manuscript": page.manuscript}
 
+    @app.get("/api/datasets/<slug>")
+    def api_dataset_detail(slug: str):
+        page = service.dataset_page(slug)
+        if not page:
+            abort(404)
+        return {"dataset": page.dataset}
+
     @app.get("/api/manuscripts/<slug>")
     def api_manuscript_detail(slug: str):
         page = service.manuscript_page(slug)
@@ -183,6 +190,25 @@ def create_app(
         if not project:
             abort(404)
         return {"project": project}
+
+    @app.patch("/api/datasets/<slug>")
+    def api_dataset_update(slug: str):
+        service.ensure_runtime_seeded()
+        payload = request.get_json(silent=True) or {}
+        allowed_fields = {
+            "name",
+            "kind",
+            "source",
+            "description",
+            "updated_at",
+        }
+        changes = {key: value for key, value in payload.items() if key in allowed_fields}
+        if not changes:
+            return {"error": "No updatable fields provided."}, 400
+        dataset = service.workspace_service.update_dataset(slug, changes)
+        if not dataset:
+            abort(404)
+        return {"dataset": dataset}
 
     @app.patch("/api/figures/<slug>")
     def api_figure_update(slug: str):

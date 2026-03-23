@@ -247,6 +247,31 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
         self.assertEqual(figure["next_action"], "Lock panel labels")
         self.assertEqual(self.repository.list_workspace_events()[0]["event_type"], "figure.updated")
 
+    def test_dataset_update_persists_and_emits_event(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        updated = self.repository.update_dataset(
+            "demo-dataset",
+            {
+                "name": "Demo Dataset Updated",
+                "kind": "Curated assay table",
+                "source": "Updated source note",
+                "description": "Updated dataset description.",
+                "updated_at": "Mar 24, 2026",
+            },
+        )
+
+        self.assertIsNotNone(updated)
+        assert updated is not None
+        self.assertEqual(updated["name"], "Demo Dataset Updated")
+        self.assertEqual(updated["kind"], "Curated assay table")
+
+        dataset = self.repository.get_dataset("demo-dataset")
+        self.assertIsNotNone(dataset)
+        assert dataset is not None
+        self.assertEqual(dataset["description"], "Updated dataset description.")
+        self.assertEqual(self.repository.list_workspace_events()[0]["event_type"], "dataset.updated")
+
     def test_manuscript_update_persists_and_emits_event(self) -> None:
         self.repository.ensure_seeded(self.workspace)
 

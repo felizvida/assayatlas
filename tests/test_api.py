@@ -247,6 +247,26 @@ class WorkspaceApiTest(unittest.TestCase):
         read_back = self.client.get("/api/figures/demo-figure").get_json()
         self.assertEqual(read_back["figure"]["next_action"], "Lock panel labels")
 
+    def test_dataset_patch_updates_persisted_runtime_dataset(self) -> None:
+        response = self.client.patch(
+            "/api/datasets/demo-dataset",
+            json={
+                "name": "Demo Dataset Updated",
+                "kind": "Curated assay table",
+                "source": "Updated source note",
+                "description": "Updated dataset description.",
+                "updated_at": "Mar 24, 2026",
+            },
+        )
+        payload = response.get_json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload["dataset"]["name"], "Demo Dataset Updated")
+        self.assertEqual(payload["dataset"]["kind"], "Curated assay table")
+
+        read_back = self.client.get("/api/datasets/demo-dataset").get_json()
+        self.assertEqual(read_back["dataset"]["updated_at"], "Mar 24, 2026")
+
     def test_manuscript_patch_updates_persisted_runtime_packet(self) -> None:
         response = self.client.patch(
             "/api/manuscripts/demo-manuscript",

@@ -187,6 +187,45 @@ class PersistedWorkspaceRepository:
             connection.commit()
             return record.to_payload()
 
+    def update_dataset(self, slug: str, changes: dict[str, Any]) -> dict[str, Any] | None:
+        allowed_fields = {
+            "name",
+            "kind",
+            "source",
+            "description",
+            "updated_at",
+        }
+        sanitized_changes = {key: value for key, value in changes.items() if key in allowed_fields}
+        if not sanitized_changes:
+            return self.get_dataset(slug)
+
+        self.initialize()
+        with closing(self._connect()) as connection:
+            record = self._update_record(connection, DATASET_SPEC, slug, sanitized_changes)
+            if not isinstance(record, DatasetRecord):
+                return None
+            event_time = self._timestamp()
+            self._append_activity_item(
+                connection,
+                ActivityItemRecord(
+                    title=f"{record.name} updated",
+                    meta=event_time,
+                    path=f"/datasets/{slug}",
+                    kind="Dataset",
+                ),
+            )
+            self._append_workspace_event(
+                connection,
+                WorkspaceEventRecord(
+                    event_type="dataset.updated",
+                    subject_key=slug,
+                    created_at=event_time,
+                    payload={"changes": sanitized_changes, "dataset_name": record.name},
+                ),
+            )
+            connection.commit()
+            return record.to_payload()
+
     def update_figure(self, slug: str, changes: dict[str, Any]) -> dict[str, Any] | None:
         allowed_fields = {
             "title",
@@ -633,6 +672,9 @@ class WorkspaceService:
 
     def update_figure(self, slug: str, changes: dict[str, Any]) -> dict[str, Any] | None:
         return self.repository.update_figure(slug, changes)
+
+    def update_dataset(self, slug: str, changes: dict[str, Any]) -> dict[str, Any] | None:
+        return self.repository.update_dataset(slug, changes)
 
     def update_manuscript(self, slug: str, changes: dict[str, Any]) -> dict[str, Any] | None:
         return self.repository.update_manuscript(slug, changes)

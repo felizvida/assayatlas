@@ -97,6 +97,7 @@ class AppRoutesTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"ToothGrowth.csv", response.data)
         self.assertIn(b"Linked projects", response.data)
+        self.assertIn(b"Dataset Editor", response.data)
 
     def test_manuscript_route_renders(self) -> None:
         response = self.client.get("/manuscripts/nutrient-response-atlas-manuscript")

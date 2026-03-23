@@ -13,7 +13,7 @@ Prepared on March 23, 2026.
 - Schema-versioned runtime migrations for the SQLite workspace database.
 - Typed runtime record models for persisted workspace entities.
 - A lightweight workspace event log to make runtime changes more inspectable.
-- Inline editing panels on project, figure, and manuscript detail pages, backed by the persisted runtime API.
+- Inline editing panels on project, dataset, figure, and manuscript detail pages, backed by the persisted runtime API.
 - Focused runtime and API tests so feature-level refactors no longer depend only on full-page smoke coverage.
 
 ### Changed

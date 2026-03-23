@@ -12,7 +12,7 @@ This repository ships a runnable product shell with:
 - a true SaaS-style workspace for projects, figures, datasets, manuscripts, and exports,
 - 20 guided, real-data tutorial use cases kept separate from the workspace,
 - a persisted SQLite workspace runtime seeded from the generated manifest on first boot,
-- inline editors on project, figure, and manuscript pages backed by the persisted runtime API,
+- inline editors on project, dataset, figure, and manuscript pages backed by the persisted runtime API,
 - generated analysis artifacts and polished chart assets,
 - a hand-held training tutorial with step-by-step instructions,
 - and a Flask web app with a landing page, workspace, docs center, tutorial, and manuscript export flow.
@@ -50,6 +50,7 @@ Runtime API routes:
 
 - `GET /api/workspace`
 - `GET|PATCH /api/projects/<slug>`
+- `GET|PATCH /api/datasets/<slug>`
 - `GET|PATCH /api/figures/<slug>`
 - `GET|PATCH /api/manuscripts/<slug>`
 - `GET|POST /api/export-jobs`

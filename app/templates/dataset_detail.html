@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block title %}{{ dataset.name }} | {{ product_name }}{% endblock %}
 {% block content %}
-  <section class="case-hero">
+  <section class="case-hero" data-editor-scope="dataset">
     <div>
       <div class="use-case-meta">
-        <span class="pill">{{ dataset.kind }}</span>
-        <span class="muted">{{ dataset.source }}</span>
+        <span class="pill" data-bind="kind">{{ dataset.kind }}</span>
+        <span class="muted" data-bind="source">{{ dataset.source }}</span>
       </div>
-      <h1>{{ dataset.name }}</h1>
-      <p class="hero-text">{{ dataset.description }}</p>
+      <h1 data-bind="name">{{ dataset.name }}</h1>
+      <p class="hero-text" data-bind="description">{{ dataset.description }}</p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="{{ url_for('download', relative_path=dataset.path) }}">Download CSV</a>
         {% if dataset.linked_projects %}
@@ -37,11 +37,56 @@
     </aside>
   </section>
 
-  <section class="section-block workspace-columns">
+  <section class="section-block workspace-columns" data-editor-scope="dataset">
+    <div class="workspace-card editor-card">
+      <div class="card-heading">
+        <div>
+          <h2>Dataset Editor</h2>
+          <span class="muted">Maintain dataset metadata in the live workspace without leaving the page.</span>
+        </div>
+      </div>
+      <form
+        class="editor-form"
+        data-inline-editor
+        data-editor-scope="dataset"
+        data-endpoint="{{ url_for('api_dataset_update', slug=dataset.slug) }}"
+        data-record-key="dataset"
+      >
+        <div class="form-grid">
+          <label class="field-label">
+            <span>Dataset name</span>
+            <input class="field-input" type="text" name="name" value="{{ dataset.name }}">
+          </label>
+          <label class="field-label">
+            <span>Kind</span>
+            <input class="field-input" type="text" name="kind" value="{{ dataset.kind }}">
+          </label>
+          <label class="field-label">
+            <span>Source</span>
+            <input class="field-input" type="text" name="source" value="{{ dataset.source }}">
+          </label>
+          <label class="field-label">
+            <span>Updated at</span>
+            <input class="field-input" type="text" name="updated_at" value="{{ dataset.updated_at }}">
+          </label>
+          <label class="field-label field-label-wide">
+            <span>Description</span>
+            <textarea class="field-input field-textarea" name="description" rows="4">{{ dataset.description }}</textarea>
+          </label>
+        </div>
+        <div class="editor-toolbar">
+          <p class="editor-status" data-editor-status data-state="neutral">Ready to save dataset metadata to the workspace.</p>
+          <div class="hero-actions editor-actions">
+            <button class="btn btn-primary" type="submit">Save Dataset</button>
+            <button class="btn btn-secondary" type="reset">Reset Form</button>
+          </div>
+        </div>
+      </form>
+    </div>
     <div class="workspace-card">
       <div class="card-heading">
         <h2>Preview</h2>
-        <span class="muted">{{ dataset.updated_at }}</span>
+        <span class="muted" data-bind="updated_at">{{ dataset.updated_at }}</span>
       </div>
       <div class="table-shell">
         <table>
@@ -95,4 +140,7 @@
       </div>
     </div>
   </section>
+{% endblock %}
+{% block extra_scripts %}
+  <script src="{{ url_for('static', filename='editor.js') }}"></script>
 {% endblock %}
