@@ -27,6 +27,9 @@ class AppRoutesTest(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
+        close = getattr(cls.client, "close", None)
+        if callable(close):
+            close()
         cls.temp_dir.cleanup()
 
     def test_homepage_renders(self) -> None:

@@ -5,7 +5,7 @@
 
 AssayAtlas is a production-oriented SaaS-style GraphPad Prism alternative built around one promise: publication-grade figures should be the default output, not the last mile.
 
-Current release notes are in [docs/releases/v0.1.1.md](docs/releases/v0.1.1.md).
+Current release notes are in [docs/releases/v0.1.2.md](docs/releases/v0.1.2.md).
 
 This repository ships a runnable product shell with:
 
@@ -65,7 +65,7 @@ Runtime API routes:
 ## Documentation
 
 - Changelog: `CHANGELOG.md`
-- Release notes: `docs/releases/v0.1.1.md`
+- Release notes: `docs/releases/v0.1.2.md`
 - Training tutorial: `docs/tutorial/REAL_DATA_TRAINING_TUTORIAL.md`
 - Use-case catalog: `docs/tutorial/USE_CASE_CATALOG.md`
 - Publication workflow: `docs/PUBLICATION_WORKFLOW.md`
@@ -108,5 +108,6 @@ GraphPad Prism users love polished figures, approachable analysis flows, and qui
 - The workspace now uses that export-job API directly so users can queue and advance export work without leaving `/workspace`.
 - The workspace can now create new persisted project shells directly, so product growth is no longer limited to the seeded manifest inventory.
 - Runtime entities now pass through typed record models before they are stored or rehydrated, which keeps repository changes more isolated from route and template code.
+- Runtime write payloads now flow through `app/runtime_validation.py`, so route-layer allowlists and persistence-layer normalization stay in sync.
 - Standard browser requests to `/favicon.ico` are now served directly to avoid stray 404s during demos and review sessions.
 - The README screenshot is produced after the app is running and the tutorial pages are captured locally.

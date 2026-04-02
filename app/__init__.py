@@ -6,6 +6,16 @@ from flask import Flask, abort, render_template, request, send_file, url_for
 
 from app.content import ContentService, DownloadPolicy
 from app.runtime import WorkspaceService
+from app.runtime_validation import (
+    DATASET_UPDATE_FIELDS,
+    EXPORT_JOB_CREATE_FIELDS,
+    EXPORT_JOB_UPDATE_FIELDS,
+    FIGURE_UPDATE_FIELDS,
+    MANUSCRIPT_UPDATE_FIELDS,
+    PROJECT_CREATE_FIELDS,
+    PROJECT_UPDATE_FIELDS,
+    filter_allowed_fields,
+)
 
 
 def create_app(
@@ -146,7 +156,7 @@ def create_app(
     @app.post("/api/projects")
     def api_project_create():
         service.ensure_runtime_seeded()
-        payload = request.get_json(silent=True) or {}
+        payload = filter_allowed_fields(request.get_json(silent=True) or {}, PROJECT_CREATE_FIELDS)
         try:
             project = service.workspace_service.create_project(payload)
         except ValueError as exc:
@@ -178,22 +188,7 @@ def create_app(
     def api_project_update(slug: str):
         service.ensure_runtime_seeded()
         payload = request.get_json(silent=True) or {}
-        allowed_fields = {
-            "name",
-            "status",
-            "tone",
-            "summary",
-            "next_review",
-            "due_date",
-            "completion",
-            "owner",
-            "target_journal",
-            "export_preset",
-            "tasks",
-            "milestones",
-            "team",
-        }
-        changes = {key: value for key, value in payload.items() if key in allowed_fields}
+        changes = filter_allowed_fields(payload, PROJECT_UPDATE_FIELDS)
         if not changes:
             return {"error": "No updatable fields provided."}, 400
         try:
@@ -208,14 +203,7 @@ def create_app(
     def api_dataset_update(slug: str):
         service.ensure_runtime_seeded()
         payload = request.get_json(silent=True) or {}
-        allowed_fields = {
-            "name",
-            "kind",
-            "source",
-            "description",
-            "updated_at",
-        }
-        changes = {key: value for key, value in payload.items() if key in allowed_fields}
+        changes = filter_allowed_fields(payload, DATASET_UPDATE_FIELDS)
         if not changes:
             return {"error": "No updatable fields provided."}, 400
         try:
@@ -230,21 +218,7 @@ def create_app(
     def api_figure_update(slug: str):
         service.ensure_runtime_seeded()
         payload = request.get_json(silent=True) or {}
-        allowed_fields = {
-            "title",
-            "status",
-            "tone",
-            "version",
-            "summary",
-            "what_to_notice",
-            "key_metrics",
-            "caption_text",
-            "methods_text",
-            "results_text",
-            "next_action",
-            "owner",
-        }
-        changes = {key: value for key, value in payload.items() if key in allowed_fields}
+        changes = filter_allowed_fields(payload, FIGURE_UPDATE_FIELDS)
         if not changes:
             return {"error": "No updatable fields provided."}, 400
         try:
@@ -259,19 +233,7 @@ def create_app(
     def api_manuscript_update(slug: str):
         service.ensure_runtime_seeded()
         payload = request.get_json(silent=True) or {}
-        allowed_fields = {
-            "title",
-            "status",
-            "tone",
-            "narrative",
-            "submission_preset",
-            "target_journal",
-            "due_date",
-            "sections",
-            "deliverables",
-            "figure_progress",
-        }
-        changes = {key: value for key, value in payload.items() if key in allowed_fields}
+        changes = filter_allowed_fields(payload, MANUSCRIPT_UPDATE_FIELDS)
         if not changes:
             return {"error": "No updatable fields provided."}, 400
         try:
@@ -290,7 +252,7 @@ def create_app(
     @app.post("/api/export-jobs")
     def api_export_job_create():
         service.ensure_runtime_seeded()
-        payload = request.get_json(silent=True) or {}
+        payload = filter_allowed_fields(request.get_json(silent=True) or {}, EXPORT_JOB_CREATE_FIELDS)
         try:
             job = service.workspace_service.create_export_job(payload)
         except ValueError as exc:
@@ -301,8 +263,7 @@ def create_app(
     def api_export_job_update(job_key: str):
         service.ensure_runtime_seeded()
         payload = request.get_json(silent=True) or {}
-        allowed_fields = {"title", "status", "tone", "detail", "path"}
-        changes = {key: value for key, value in payload.items() if key in allowed_fields}
+        changes = filter_allowed_fields(payload, EXPORT_JOB_UPDATE_FIELDS)
         if not changes:
             return {"error": "No updatable fields provided."}, 400
         try:

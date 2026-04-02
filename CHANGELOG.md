@@ -2,6 +2,25 @@
 
 All notable changes to AssayAtlas will be documented in this file.
 
+## v0.1.2
+
+Released on April 2, 2026.
+
+### Added
+
+- A dedicated runtime validation layer in `app/runtime_validation.py`, with focused unit coverage for validator behavior.
+
+### Changed
+
+- Flask write endpoints now share the same allowed-field definitions as the persisted runtime layer.
+- Runtime write normalization for projects, datasets, figures, manuscripts, and export jobs now flows through a single validation seam instead of being duplicated inside the repository implementation.
+
+### Fixed
+
+- Export job creation and update now reject blank `title`, `detail`, and `path` payloads server-side.
+- Project, dataset, figure, and manuscript write paths now reject whitespace-only values for required editable text fields instead of persisting degraded records.
+- SQLite test connections are now closed explicitly, which removes the noisy resource warnings seen during API-focused test runs.
+
 ## v0.1.1
 
 Released on March 23, 2026.

@@ -47,7 +47,9 @@ Expected response:
 The persisted workspace currently exposes:
 
 - `GET /api/workspace`
+- `POST /api/projects`
 - `GET|PATCH /api/projects/<slug>`
+- `GET|PATCH /api/datasets/<slug>`
 - `GET|PATCH /api/figures/<slug>`
 - `GET|PATCH /api/manuscripts/<slug>`
 - `GET|POST /api/export-jobs`
@@ -74,7 +76,7 @@ If you deploy by tag instead of by branch head:
 ```bash
 cd /srv/assayatlas
 git fetch --tags origin
-git checkout v0.1.1
+git checkout v0.1.2
 ./.venv/bin/pip install -r requirements.txt
 ./.venv/bin/python scripts/build_examples.py
 ./.venv/bin/python run.py
@@ -116,7 +118,7 @@ To return to the current public baseline:
 ```bash
 cd /srv/assayatlas
 git fetch --tags origin
-git checkout v0.1.0
+git checkout v0.1.1
 ./.venv/bin/python scripts/build_examples.py
 ./.venv/bin/python run.py
 ```

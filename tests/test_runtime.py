@@ -4,6 +4,7 @@ import json
 import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 from pathlib import Path
 
 from app.runtime import PersistedWorkspaceRepository, WorkspaceService
@@ -182,7 +183,7 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
     def test_legacy_complete_workspace_gets_marked_without_reseed(self) -> None:
         self.repository.ensure_seeded(self.workspace)
 
-        with sqlite3.connect(self.db_path) as connection:
+        with closing(sqlite3.connect(self.db_path)) as connection:
             connection.execute("DELETE FROM workspace_meta WHERE key = ?", ("seed_state",))
             connection.execute(
                 "UPDATE projects SET payload_json = ? WHERE slug = ?",
@@ -202,7 +203,7 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
 
         snapshot = self.repository.workspace_snapshot()
         self.assertEqual(snapshot["projects"][0]["name"], "Legacy Edited Project")
-        with sqlite3.connect(self.db_path) as connection:
+        with closing(sqlite3.connect(self.db_path)) as connection:
             row = connection.execute(
                 "SELECT payload_json FROM workspace_meta WHERE key = ?",
                 ("seed_state",),
@@ -211,7 +212,7 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
 
     def test_partial_workspace_is_reseeded(self) -> None:
         self.repository.initialize()
-        with sqlite3.connect(self.db_path) as connection:
+        with closing(sqlite3.connect(self.db_path)) as connection:
             connection.execute(
                 "INSERT INTO projects(slug, sort_order, payload_json) VALUES (?, ?, ?)",
                 ("orphan", 0, json.dumps({"slug": "orphan", "name": "Orphan"})),

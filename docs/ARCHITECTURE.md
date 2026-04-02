@@ -24,11 +24,15 @@ The current implementation is a production-oriented product shell for a single s
 - `app/runtime_models.py`
   - Defines typed runtime records for projects, datasets, figures, manuscripts, export jobs, activity items, and workspace events.
   - Preserves unknown payload keys so the runtime can evolve without immediately breaking seed data or templates.
+- `app/runtime_validation.py`
+  - Defines the shared write-validation seam for persisted runtime payloads.
+  - Centralizes allowed-field lists, string normalization, and structured payload checks for project, dataset, figure, manuscript, and export-job writes.
 - `app/__init__.py`
   - Hosts the Flask app factory.
   - Serves the workspace, project, figure, dataset, manuscript, tutorial, and docs pages through the content service.
   - Exposes only allowlisted downloads rather than repo-root file access.
   - Exposes a small JSON workspace API on top of the persisted runtime service, including figure and manuscript update paths.
+  - Reuses the runtime validation layer's allowlists so route-level write filtering stays aligned with persistence rules.
 - `app/templates/*`
   - Render the SaaS-style user interface.
 - `app/static/generated/charts/*`
@@ -66,6 +70,7 @@ That keeps the repo aligned. If a use case changes, the app and docs change toge
 - Download access is isolated behind an allowlist, which limits exposure to generated artifacts instead of the whole repository.
 - Workspace runtime state now has a persisted repository/service seam, which decouples the workspace path from the generated manifest.
 - The runtime now supports explicit write paths for project, figure, manuscript, and export-job updates, plus a lightweight event log.
+- The runtime validation module now gives write APIs a replaceable seam of their own, so field rules can evolve without reopening the repository implementation.
 - The test suite now mixes full-stack smoke coverage with focused unit tests for the content layer, runtime models, runtime workspace repository, runtime API, and manifest-builder seams.
 
 ## Suggested production SaaS evolution

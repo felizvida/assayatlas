@@ -184,6 +184,9 @@ class WorkspaceApiTest(unittest.TestCase):
         self.client = create_app(content_service=content_service).test_client()
 
     def tearDown(self) -> None:
+        close = getattr(self.client, "close", None)
+        if callable(close):
+            close()
         self.temp_dir.cleanup()
 
     def test_workspace_api_returns_seeded_runtime_snapshot(self) -> None:
