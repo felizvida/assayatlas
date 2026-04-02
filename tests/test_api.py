@@ -234,6 +234,30 @@ class WorkspaceApiTest(unittest.TestCase):
         self.assertEqual(html_response.status_code, 200)
         self.assertIn(b"No figure drafts linked yet.", html_response.data)
 
+    def test_project_post_rejects_blank_name(self) -> None:
+        response = self.client.post(
+            "/api/projects",
+            json={
+                "name": "   ",
+                "owner": "Maya Singh",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error"], "Project name must be a non-empty string")
+
+    def test_project_post_rejects_malformed_tasks(self) -> None:
+        response = self.client.post(
+            "/api/projects",
+            json={
+                "name": "Immune Signaling Atlas",
+                "tasks": ["Draft caption", "   "],
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error"], "Project tasks item must be a non-empty string")
+
     def test_export_job_api_creates_and_updates_job(self) -> None:
         create_response = self.client.post(
             "/api/export-jobs",
@@ -257,6 +281,24 @@ class WorkspaceApiTest(unittest.TestCase):
         self.assertEqual(events[0]["event_type"], "export_job.updated")
         self.assertEqual(self.client.get("/api/export-jobs").get_json()["export_jobs"][-1]["title"], "Fresh TIFF export")
 
+    def test_export_job_api_rejects_blank_create_fields(self) -> None:
+        response = self.client.post(
+            "/api/export-jobs",
+            json={"title": "   ", "detail": "   ", "path": "   "},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error"], "Export job title must be a non-empty string")
+
+    def test_export_job_api_rejects_blank_update_fields(self) -> None:
+        response = self.client.patch(
+            "/api/export-jobs/export_jobs-0-demo-export",
+            json={"detail": "   "},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error"], "Export job detail must be a non-empty string")
+
     def test_figure_patch_updates_persisted_runtime_figure(self) -> None:
         response = self.client.patch(
             "/api/figures/demo-figure",
@@ -270,6 +312,24 @@ class WorkspaceApiTest(unittest.TestCase):
 
         read_back = self.client.get("/api/figures/demo-figure").get_json()
         self.assertEqual(read_back["figure"]["next_action"], "Lock panel labels")
+
+    def test_figure_patch_rejects_malformed_key_metrics(self) -> None:
+        response = self.client.patch(
+            "/api/figures/demo-figure",
+            json={"key_metrics": ["Metric 1", "   "]},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error"], "Figure key_metrics item must be a non-empty string")
+
+    def test_figure_patch_rejects_blank_summary(self) -> None:
+        response = self.client.patch(
+            "/api/figures/demo-figure",
+            json={"summary": "   "},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error"], "Figure summary must be a non-empty string")
 
     def test_dataset_patch_updates_persisted_runtime_dataset(self) -> None:
         response = self.client.patch(
@@ -291,6 +351,15 @@ class WorkspaceApiTest(unittest.TestCase):
         read_back = self.client.get("/api/datasets/demo-dataset").get_json()
         self.assertEqual(read_back["dataset"]["updated_at"], "Mar 24, 2026")
 
+    def test_dataset_patch_rejects_blank_description(self) -> None:
+        response = self.client.patch(
+            "/api/datasets/demo-dataset",
+            json={"description": "   "},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error"], "Dataset description must be a non-empty string")
+
     def test_manuscript_patch_updates_persisted_runtime_packet(self) -> None:
         response = self.client.patch(
             "/api/manuscripts/demo-manuscript",
@@ -304,6 +373,42 @@ class WorkspaceApiTest(unittest.TestCase):
 
         read_back = self.client.get("/api/manuscripts/demo-manuscript").get_json()
         self.assertEqual(read_back["manuscript"]["status"], "Submission packet ready")
+
+    def test_project_patch_rejects_malformed_team(self) -> None:
+        response = self.client.patch(
+            "/api/projects/demo-project",
+            json={"team": [{"name": "Alex Doe", "role": "PI", "initials": "   "}]},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error"], "Project team initials must be a non-empty string")
+
+    def test_project_patch_rejects_blank_name(self) -> None:
+        response = self.client.patch(
+            "/api/projects/demo-project",
+            json={"name": "   "},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error"], "Project name must be a non-empty string")
+
+    def test_manuscript_patch_rejects_malformed_sections(self) -> None:
+        response = self.client.patch(
+            "/api/manuscripts/demo-manuscript",
+            json={"sections": [{"label": "Results", "state": "   "}]},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error"], "Manuscript sections state must be a non-empty string")
+
+    def test_manuscript_patch_rejects_blank_narrative(self) -> None:
+        response = self.client.patch(
+            "/api/manuscripts/demo-manuscript",
+            json={"narrative": "   "},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error"], "Manuscript narrative must be a non-empty string")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -177,6 +179,52 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
         self.assertEqual(snapshot["projects"][0]["name"], "Demo Project")
         self.assertEqual(snapshot["tutorial_library"]["summary"], "Seeded tutorial library.")
 
+    def test_legacy_complete_workspace_gets_marked_without_reseed(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        with sqlite3.connect(self.db_path) as connection:
+            connection.execute("DELETE FROM workspace_meta WHERE key = ?", ("seed_state",))
+            connection.execute(
+                "UPDATE projects SET payload_json = ? WHERE slug = ?",
+                (
+                    json.dumps(
+                        {
+                            **self.repository.get_project("demo-project"),
+                            "name": "Legacy Edited Project",
+                        }
+                    ),
+                    "demo-project",
+                ),
+            )
+            connection.commit()
+
+        self.repository.ensure_seeded(self.workspace)
+
+        snapshot = self.repository.workspace_snapshot()
+        self.assertEqual(snapshot["projects"][0]["name"], "Legacy Edited Project")
+        with sqlite3.connect(self.db_path) as connection:
+            row = connection.execute(
+                "SELECT payload_json FROM workspace_meta WHERE key = ?",
+                ("seed_state",),
+            ).fetchone()
+        self.assertIsNotNone(row)
+
+    def test_partial_workspace_is_reseeded(self) -> None:
+        self.repository.initialize()
+        with sqlite3.connect(self.db_path) as connection:
+            connection.execute(
+                "INSERT INTO projects(slug, sort_order, payload_json) VALUES (?, ?, ?)",
+                ("orphan", 0, json.dumps({"slug": "orphan", "name": "Orphan"})),
+            )
+            connection.commit()
+
+        self.repository.ensure_seeded(self.workspace)
+
+        snapshot = self.repository.workspace_snapshot()
+        self.assertEqual(snapshot["projects"][0]["slug"], "demo-project")
+        self.assertEqual(snapshot["datasets"][0]["slug"], "demo-dataset")
+        self.assertEqual(snapshot["tutorial_library"]["count"], 20)
+
     def test_project_update_persists_and_emits_event(self) -> None:
         self.repository.ensure_seeded(self.workspace)
 
@@ -217,6 +265,28 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
         self.assertEqual(snapshot["projects"][-1]["slug"], "immune-signaling-atlas")
         self.assertEqual(snapshot["workspace_events"][0]["event_type"], "project.created")
 
+    def test_project_create_rejects_blank_name(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        with self.assertRaisesRegex(ValueError, "Project name must be a non-empty string"):
+            self.repository.create_project(
+                {
+                    "name": "   ",
+                    "owner": "Maya Singh",
+                }
+            )
+
+    def test_project_create_rejects_malformed_tasks(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        with self.assertRaisesRegex(ValueError, "Project tasks item must be a non-empty string"):
+            self.repository.create_project(
+                {
+                    "name": "Immune Signaling Atlas",
+                    "tasks": ["Prepare legend", "   "],
+                }
+            )
+
     def test_export_job_create_and_update_persist(self) -> None:
         self.repository.ensure_seeded(self.workspace)
 
@@ -243,6 +313,24 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
         self.assertEqual(export_jobs[-1]["title"], "Fresh TIFF export")
         self.assertEqual(self.repository.list_workspace_events()[0]["event_type"], "export_job.updated")
 
+    def test_export_job_create_rejects_blank_required_fields(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        with self.assertRaisesRegex(ValueError, "Export job title must be a non-empty string"):
+            self.repository.create_export_job(
+                {
+                    "title": "   ",
+                    "detail": "High-resolution raster package",
+                    "path": "/figures/demo-figure",
+                }
+            )
+
+    def test_export_job_update_rejects_blank_fields(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        with self.assertRaisesRegex(ValueError, "Export job detail must be a non-empty string"):
+            self.repository.update_export_job("export_jobs-0-demo-export", {"detail": "   "})
+
     def test_figure_update_persists_and_emits_event(self) -> None:
         self.repository.ensure_seeded(self.workspace)
 
@@ -266,6 +354,50 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
         assert figure is not None
         self.assertEqual(figure["next_action"], "Lock panel labels")
         self.assertEqual(self.repository.list_workspace_events()[0]["event_type"], "figure.updated")
+
+    def test_project_update_rejects_malformed_team(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        with self.assertRaisesRegex(ValueError, "Project team initials must be a non-empty string"):
+            self.repository.update_project(
+                "demo-project",
+                {
+                    "team": [{"name": "Alex Doe", "role": "PI", "initials": "   "}],
+                },
+            )
+
+    def test_project_update_rejects_blank_name(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        with self.assertRaisesRegex(ValueError, "Project name must be a non-empty string"):
+            self.repository.update_project(
+                "demo-project",
+                {
+                    "name": "   ",
+                },
+            )
+
+    def test_figure_update_rejects_malformed_key_metrics(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        with self.assertRaisesRegex(ValueError, "Figure key_metrics item must be a non-empty string"):
+            self.repository.update_figure(
+                "demo-figure",
+                {
+                    "key_metrics": ["Metric 1", "   "],
+                },
+            )
+
+    def test_figure_update_rejects_blank_summary(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        with self.assertRaisesRegex(ValueError, "Figure summary must be a non-empty string"):
+            self.repository.update_figure(
+                "demo-figure",
+                {
+                    "summary": "   ",
+                },
+            )
 
     def test_dataset_update_persists_and_emits_event(self) -> None:
         self.repository.ensure_seeded(self.workspace)
@@ -292,6 +424,17 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
         self.assertEqual(dataset["description"], "Updated dataset description.")
         self.assertEqual(self.repository.list_workspace_events()[0]["event_type"], "dataset.updated")
 
+    def test_dataset_update_rejects_blank_description(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        with self.assertRaisesRegex(ValueError, "Dataset description must be a non-empty string"):
+            self.repository.update_dataset(
+                "demo-dataset",
+                {
+                    "description": "   ",
+                },
+            )
+
     def test_manuscript_update_persists_and_emits_event(self) -> None:
         self.repository.ensure_seeded(self.workspace)
 
@@ -314,6 +457,28 @@ class PersistedWorkspaceRepositoryTest(unittest.TestCase):
         assert manuscript is not None
         self.assertEqual(manuscript["narrative"], "Updated manuscript narrative.")
         self.assertEqual(self.repository.list_workspace_events()[0]["event_type"], "manuscript.updated")
+
+    def test_manuscript_update_rejects_malformed_sections(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        with self.assertRaisesRegex(ValueError, "Manuscript sections state must be a non-empty string"):
+            self.repository.update_manuscript(
+                "demo-manuscript",
+                {
+                    "sections": [{"label": "Results", "state": "   "}],
+                },
+            )
+
+    def test_manuscript_update_rejects_blank_narrative(self) -> None:
+        self.repository.ensure_seeded(self.workspace)
+
+        with self.assertRaisesRegex(ValueError, "Manuscript narrative must be a non-empty string"):
+            self.repository.update_manuscript(
+                "demo-manuscript",
+                {
+                    "narrative": "   ",
+                },
+            )
 
 
 if __name__ == "__main__":

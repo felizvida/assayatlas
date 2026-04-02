@@ -196,7 +196,10 @@ def create_app(
         changes = {key: value for key, value in payload.items() if key in allowed_fields}
         if not changes:
             return {"error": "No updatable fields provided."}, 400
-        project = service.workspace_service.update_project(slug, changes)
+        try:
+            project = service.workspace_service.update_project(slug, changes)
+        except ValueError as exc:
+            return {"error": str(exc)}, 400
         if not project:
             abort(404)
         return {"project": project}
@@ -215,7 +218,10 @@ def create_app(
         changes = {key: value for key, value in payload.items() if key in allowed_fields}
         if not changes:
             return {"error": "No updatable fields provided."}, 400
-        dataset = service.workspace_service.update_dataset(slug, changes)
+        try:
+            dataset = service.workspace_service.update_dataset(slug, changes)
+        except ValueError as exc:
+            return {"error": str(exc)}, 400
         if not dataset:
             abort(404)
         return {"dataset": dataset}
@@ -241,7 +247,10 @@ def create_app(
         changes = {key: value for key, value in payload.items() if key in allowed_fields}
         if not changes:
             return {"error": "No updatable fields provided."}, 400
-        figure = service.workspace_service.update_figure(slug, changes)
+        try:
+            figure = service.workspace_service.update_figure(slug, changes)
+        except ValueError as exc:
+            return {"error": str(exc)}, 400
         if not figure:
             abort(404)
         return {"figure": figure}
@@ -265,7 +274,10 @@ def create_app(
         changes = {key: value for key, value in payload.items() if key in allowed_fields}
         if not changes:
             return {"error": "No updatable fields provided."}, 400
-        manuscript = service.workspace_service.update_manuscript(slug, changes)
+        try:
+            manuscript = service.workspace_service.update_manuscript(slug, changes)
+        except ValueError as exc:
+            return {"error": str(exc)}, 400
         if not manuscript:
             abort(404)
         return {"manuscript": manuscript}
@@ -293,7 +305,10 @@ def create_app(
         changes = {key: value for key, value in payload.items() if key in allowed_fields}
         if not changes:
             return {"error": "No updatable fields provided."}, 400
-        job = service.workspace_service.update_export_job(job_key, changes)
+        try:
+            job = service.workspace_service.update_export_job(job_key, changes)
+        except ValueError as exc:
+            return {"error": str(exc)}, 400
         if not job:
             abort(404)
         return {"export_job": job}

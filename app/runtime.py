@@ -51,6 +51,14 @@ ACTIVITY_FEED_SPEC = EntitySpec(
     ActivityItemRecord,
     fallback_key_fields=("title", "path"),
 )
+REQUIRED_WORKSPACE_META_KEYS = ("quick_actions", "pinned_tasks", "tutorial_library")
+REQUIRED_SEEDED_TABLES = (
+    PROJECT_SPEC.table,
+    DATASET_SPEC.table,
+    FIGURE_SPEC.table,
+    MANUSCRIPT_SPEC.table,
+)
+SEED_STATE_META_KEY = "seed_state"
 
 
 class PersistedWorkspaceRepository:
@@ -65,8 +73,13 @@ class PersistedWorkspaceRepository:
     def ensure_seeded(self, workspace: dict[str, Any]) -> None:
         self.initialize()
         with closing(self._connect()) as connection:
-            count = connection.execute("SELECT COUNT(*) FROM projects").fetchone()[0]
-            if count:
+            if self._workspace_seed_is_complete(connection):
+                if not self._load_meta(connection, SEED_STATE_META_KEY, None):
+                    self._store_seed_state(connection, status="complete", source="legacy-detected")
+                    connection.commit()
+                return
+            if self._workspace_has_any_data(connection):
+                self._seed_workspace(connection, workspace, source="partial-recovery")
                 return
             self._seed_workspace(connection, workspace)
 
@@ -159,10 +172,25 @@ class PersistedWorkspaceRepository:
         sanitized_changes = {key: value for key, value in changes.items() if key in allowed_fields}
         if not sanitized_changes:
             return self.get_project(slug)
+        normalized_changes = self._normalize_required_string_fields(
+            sanitized_changes,
+            {
+                "name": "Project name",
+                "status": "Project status",
+                "tone": "Project tone",
+                "summary": "Project summary",
+                "next_review": "Project next_review",
+                "due_date": "Project due_date",
+                "owner": "Project owner",
+                "target_journal": "Project target_journal",
+                "export_preset": "Project export_preset",
+            },
+        )
+        normalized_changes = self._normalize_project_structured_fields(normalized_changes)
 
         self.initialize()
         with closing(self._connect()) as connection:
-            record = self._update_record(connection, PROJECT_SPEC, slug, sanitized_changes)
+            record = self._update_record(connection, PROJECT_SPEC, slug, normalized_changes)
             if not isinstance(record, ProjectRecord):
                 return None
             event_time = self._timestamp()
@@ -181,16 +209,13 @@ class PersistedWorkspaceRepository:
                     event_type="project.updated",
                     subject_key=slug,
                     created_at=event_time,
-                    payload={"changes": sanitized_changes, "project_name": record.name},
+                    payload={"changes": normalized_changes, "project_name": record.name},
                 ),
             )
             connection.commit()
             return record.to_payload()
 
     def create_project(self, payload: dict[str, Any]) -> dict[str, Any]:
-        if not payload.get("name"):
-            raise ValueError("Missing required project field: name")
-
         allowed_fields = {
             "slug",
             "name",
@@ -215,34 +240,61 @@ class PersistedWorkspaceRepository:
             "primary_figure_slug",
         }
         sanitized_payload = {key: value for key, value in payload.items() if key in allowed_fields}
+        normalized_payload = dict(sanitized_payload)
+        normalized_payload["name"] = self._require_non_empty_string(
+            normalized_payload.get("name"),
+            field_label="Project name",
+        )
+        for field in (
+            "slug",
+            "status",
+            "tone",
+            "summary",
+            "hero_chart_path",
+            "next_review",
+            "due_date",
+            "target_journal",
+            "owner",
+            "export_preset",
+        ):
+            if field in normalized_payload:
+                normalized_value = self._normalize_optional_string(
+                    normalized_payload[field],
+                    field_label=f"Project {field}",
+                )
+                if normalized_value is None:
+                    normalized_payload.pop(field)
+                else:
+                    normalized_payload[field] = normalized_value
+        normalized_payload = self._normalize_project_structured_fields(normalized_payload)
 
         self.initialize()
         with closing(self._connect()) as connection:
             sort_order = self._next_sort_order(connection, PROJECT_SPEC.table)
-            base_slug = sanitized_payload.get("slug") or self._slugify(str(sanitized_payload["name"]))
+            base_slug = normalized_payload.get("slug") or self._slugify(normalized_payload["name"])
             project_slug = self._ensure_unique_key(connection, PROJECT_SPEC, base_slug)
             project_payload = {
                 "slug": project_slug,
-                "name": sanitized_payload["name"],
-                "status": sanitized_payload.get("status", "Draft setup"),
-                "tone": sanitized_payload.get("tone", "progress"),
-                "summary": sanitized_payload.get("summary", "New project workspace ready for figures, datasets, and manuscript planning."),
-                "hero_chart_path": sanitized_payload.get("hero_chart_path", "generated/charts/20-publication-figure-board.png"),
-                "completion": sanitized_payload.get("completion", 0),
-                "figure_count": sanitized_payload.get("figure_count", 0),
-                "dataset_count": sanitized_payload.get("dataset_count", 0),
-                "next_review": sanitized_payload.get("next_review", "Not scheduled"),
-                "team": sanitized_payload.get("team", []),
-                "due_date": sanitized_payload.get("due_date", "TBD"),
-                "target_journal": sanitized_payload.get("target_journal", "Unassigned"),
-                "owner": sanitized_payload.get("owner", "Unassigned"),
-                "export_preset": sanitized_payload.get("export_preset", "General submission"),
-                "tasks": sanitized_payload.get("tasks", ["Define the first figure draft"]),
-                "milestones": sanitized_payload.get("milestones", [{"label": "Project shell created", "state": "complete"}]),
-                "figures": sanitized_payload.get("figures", []),
-                "datasets": sanitized_payload.get("datasets", []),
-                "manuscript_slug": sanitized_payload.get("manuscript_slug"),
-                "primary_figure_slug": sanitized_payload.get("primary_figure_slug"),
+                "name": normalized_payload["name"],
+                "status": normalized_payload.get("status", "Draft setup"),
+                "tone": normalized_payload.get("tone", "progress"),
+                "summary": normalized_payload.get("summary", "New project workspace ready for figures, datasets, and manuscript planning."),
+                "hero_chart_path": normalized_payload.get("hero_chart_path", "generated/charts/20-publication-figure-board.png"),
+                "completion": normalized_payload.get("completion", 0),
+                "figure_count": normalized_payload.get("figure_count", 0),
+                "dataset_count": normalized_payload.get("dataset_count", 0),
+                "next_review": normalized_payload.get("next_review", "Not scheduled"),
+                "team": normalized_payload.get("team", []),
+                "due_date": normalized_payload.get("due_date", "TBD"),
+                "target_journal": normalized_payload.get("target_journal", "Unassigned"),
+                "owner": normalized_payload.get("owner", "Unassigned"),
+                "export_preset": normalized_payload.get("export_preset", "General submission"),
+                "tasks": normalized_payload.get("tasks", ["Define the first figure draft"]),
+                "milestones": normalized_payload.get("milestones", [{"label": "Project shell created", "state": "complete"}]),
+                "figures": normalized_payload.get("figures", []),
+                "datasets": normalized_payload.get("datasets", []),
+                "manuscript_slug": normalized_payload.get("manuscript_slug"),
+                "primary_figure_slug": normalized_payload.get("primary_figure_slug"),
             }
             record = ProjectRecord.from_payload(project_payload)
             connection.execute(
@@ -282,10 +334,20 @@ class PersistedWorkspaceRepository:
         sanitized_changes = {key: value for key, value in changes.items() if key in allowed_fields}
         if not sanitized_changes:
             return self.get_dataset(slug)
+        normalized_changes = self._normalize_required_string_fields(
+            sanitized_changes,
+            {
+                "name": "Dataset name",
+                "kind": "Dataset kind",
+                "source": "Dataset source",
+                "description": "Dataset description",
+                "updated_at": "Dataset updated_at",
+            },
+        )
 
         self.initialize()
         with closing(self._connect()) as connection:
-            record = self._update_record(connection, DATASET_SPEC, slug, sanitized_changes)
+            record = self._update_record(connection, DATASET_SPEC, slug, normalized_changes)
             if not isinstance(record, DatasetRecord):
                 return None
             event_time = self._timestamp()
@@ -304,7 +366,7 @@ class PersistedWorkspaceRepository:
                     event_type="dataset.updated",
                     subject_key=slug,
                     created_at=event_time,
-                    payload={"changes": sanitized_changes, "dataset_name": record.name},
+                    payload={"changes": normalized_changes, "dataset_name": record.name},
                 ),
             )
             connection.commit()
@@ -328,10 +390,27 @@ class PersistedWorkspaceRepository:
         sanitized_changes = {key: value for key, value in changes.items() if key in allowed_fields}
         if not sanitized_changes:
             return self.get_figure(slug)
+        normalized_changes = self._normalize_required_string_fields(
+            sanitized_changes,
+            {
+                "title": "Figure title",
+                "status": "Figure status",
+                "tone": "Figure tone",
+                "version": "Figure version",
+                "summary": "Figure summary",
+                "what_to_notice": "Figure what_to_notice",
+                "caption_text": "Figure caption_text",
+                "methods_text": "Figure methods_text",
+                "results_text": "Figure results_text",
+                "next_action": "Figure next_action",
+                "owner": "Figure owner",
+            },
+        )
+        normalized_changes = self._normalize_figure_structured_fields(normalized_changes)
 
         self.initialize()
         with closing(self._connect()) as connection:
-            record = self._update_record(connection, FIGURE_SPEC, slug, sanitized_changes)
+            record = self._update_record(connection, FIGURE_SPEC, slug, normalized_changes)
             if not isinstance(record, FigureDraftRecord):
                 return None
             event_time = self._timestamp()
@@ -350,7 +429,7 @@ class PersistedWorkspaceRepository:
                     event_type="figure.updated",
                     subject_key=slug,
                     created_at=event_time,
-                    payload={"changes": sanitized_changes, "figure_title": record.title},
+                    payload={"changes": normalized_changes, "figure_title": record.title},
                 ),
             )
             connection.commit()
@@ -372,10 +451,24 @@ class PersistedWorkspaceRepository:
         sanitized_changes = {key: value for key, value in changes.items() if key in allowed_fields}
         if not sanitized_changes:
             return self.get_manuscript(slug)
+        normalized_changes = self._normalize_required_string_fields(
+            sanitized_changes,
+            {
+                "title": "Manuscript title",
+                "status": "Manuscript status",
+                "tone": "Manuscript tone",
+                "narrative": "Manuscript narrative",
+                "submission_preset": "Manuscript submission_preset",
+                "target_journal": "Manuscript target_journal",
+                "due_date": "Manuscript due_date",
+                "figure_progress": "Manuscript figure_progress",
+            },
+        )
+        normalized_changes = self._normalize_manuscript_structured_fields(normalized_changes)
 
         self.initialize()
         with closing(self._connect()) as connection:
-            record = self._update_record(connection, MANUSCRIPT_SPEC, slug, sanitized_changes)
+            record = self._update_record(connection, MANUSCRIPT_SPEC, slug, normalized_changes)
             if not isinstance(record, ManuscriptPacketRecord):
                 return None
             event_time = self._timestamp()
@@ -394,7 +487,7 @@ class PersistedWorkspaceRepository:
                     event_type="manuscript.updated",
                     subject_key=slug,
                     created_at=event_time,
-                    payload={"changes": sanitized_changes, "manuscript_title": record.title},
+                    payload={"changes": normalized_changes, "manuscript_title": record.title},
                 ),
             )
             connection.commit()
@@ -406,11 +499,19 @@ class PersistedWorkspaceRepository:
         if missing:
             raise ValueError(f"Missing required export job fields: {', '.join(missing)}")
 
+        normalized_payload = dict(payload)
+        for field in ("title", "detail", "path", "status", "tone", "job_key"):
+            if field in normalized_payload:
+                normalized_payload[field] = self._require_non_empty_string(
+                    normalized_payload[field],
+                    field_label=f"Export job {field}",
+                )
+
         self.initialize()
         with closing(self._connect()) as connection:
             sort_order = self._next_sort_order(connection, EXPORT_JOB_SPEC.table)
-            job_key = payload.get("job_key") or f"export-{sort_order}-{self._slugify(payload['title'])}"
-            job = ExportJobRecord.from_payload({**payload, "job_key": job_key})
+            job_key = normalized_payload.get("job_key") or f"export-{sort_order}-{self._slugify(normalized_payload['title'])}"
+            job = ExportJobRecord.from_payload({**normalized_payload, "job_key": job_key})
             connection.execute(
                 "INSERT INTO export_jobs(job_key, sort_order, payload_json) VALUES (?, ?, ?)",
                 (job.job_key, sort_order, json.dumps(job.to_payload())),
@@ -443,10 +544,14 @@ class PersistedWorkspaceRepository:
         if not sanitized_changes:
             jobs = {job["job_key"]: job for job in self.list_export_jobs() if job.get("job_key")}
             return jobs.get(job_key)
+        normalized_changes = {
+            key: self._require_non_empty_string(value, field_label=f"Export job {key}")
+            for key, value in sanitized_changes.items()
+        }
 
         self.initialize()
         with closing(self._connect()) as connection:
-            record = self._update_record(connection, EXPORT_JOB_SPEC, job_key, sanitized_changes)
+            record = self._update_record(connection, EXPORT_JOB_SPEC, job_key, normalized_changes)
             if not isinstance(record, ExportJobRecord):
                 return None
             event_time = self._timestamp()
@@ -465,7 +570,7 @@ class PersistedWorkspaceRepository:
                     event_type="export_job.updated",
                     subject_key=job_key,
                     created_at=event_time,
-                    payload={"changes": sanitized_changes, "job": record.to_payload()},
+                    payload={"changes": normalized_changes, "job": record.to_payload()},
                 ),
             )
             connection.commit()
@@ -561,7 +666,7 @@ class PersistedWorkspaceRepository:
             """
         )
 
-    def _seed_workspace(self, connection: sqlite3.Connection, workspace: dict[str, Any]) -> None:
+    def _seed_workspace(self, connection: sqlite3.Connection, workspace: dict[str, Any], source: str = "manifest") -> None:
         connection.execute("DELETE FROM workspace_meta")
         for table in (
             PROJECT_SPEC.table,
@@ -584,6 +689,7 @@ class PersistedWorkspaceRepository:
         self._insert_records(connection, MANUSCRIPT_SPEC, workspace.get("manuscripts", []))
         self._insert_records(connection, EXPORT_JOB_SPEC, workspace.get("export_queue", []))
         self._insert_records(connection, ACTIVITY_FEED_SPEC, workspace.get("activity_feed", []))
+        self._store_seed_state(connection, status="complete", source=source)
         connection.commit()
 
     def _insert_records(
@@ -629,6 +735,52 @@ class PersistedWorkspaceRepository:
         if not row:
             return default
         return json.loads(row["payload_json"])
+
+    def _workspace_seed_is_complete(self, connection: sqlite3.Connection) -> bool:
+        for key in REQUIRED_WORKSPACE_META_KEYS:
+            if connection.execute(
+                "SELECT 1 FROM workspace_meta WHERE key = ?",
+                (key,),
+            ).fetchone() is None:
+                return False
+        for table in REQUIRED_SEEDED_TABLES:
+            row = connection.execute(
+                f"SELECT COUNT(*) AS row_count FROM {table}"
+            ).fetchone()
+            if row is None or int(row["row_count"]) == 0:
+                return False
+        return True
+
+    def _workspace_has_any_data(self, connection: sqlite3.Connection) -> bool:
+        for table in (
+            PROJECT_SPEC.table,
+            DATASET_SPEC.table,
+            FIGURE_SPEC.table,
+            MANUSCRIPT_SPEC.table,
+            EXPORT_JOB_SPEC.table,
+            ACTIVITY_FEED_SPEC.table,
+            "workspace_events",
+        ):
+            row = connection.execute(
+                f"SELECT COUNT(*) AS row_count FROM {table}"
+            ).fetchone()
+            if row is not None and int(row["row_count"]) > 0:
+                return True
+        row = connection.execute(
+            "SELECT COUNT(*) AS row_count FROM workspace_meta"
+        ).fetchone()
+        return row is not None and int(row["row_count"]) > 0
+
+    def _store_seed_state(self, connection: sqlite3.Connection, status: str, source: str) -> None:
+        self._store_meta(
+            connection,
+            SEED_STATE_META_KEY,
+            {
+                "status": status,
+                "source": source,
+                "seeded_at": self._timestamp(),
+            },
+        )
 
     def _list_records(self, connection: sqlite3.Connection, spec: EntitySpec) -> list[RuntimePayloadModel]:
         rows = connection.execute(
@@ -726,6 +878,122 @@ class PersistedWorkspaceRepository:
 
     def _slugify(self, value: str) -> str:
         return "-".join("".join(char.lower() if char.isalnum() else " " for char in value).split()) or "item"
+
+    def _require_non_empty_string(self, value: Any, field_label: str) -> str:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"{field_label} must be a non-empty string")
+        return value.strip()
+
+    def _normalize_optional_string(self, value: Any, field_label: str) -> str | None:
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            raise ValueError(f"{field_label} must be a string")
+        stripped = value.strip()
+        return stripped or None
+
+    def _normalize_required_string_fields(
+        self,
+        payload: dict[str, Any],
+        field_labels: dict[str, str],
+    ) -> dict[str, Any]:
+        normalized_payload = dict(payload)
+        for field, field_label in field_labels.items():
+            if field in normalized_payload:
+                normalized_payload[field] = self._require_non_empty_string(
+                    normalized_payload[field],
+                    field_label=field_label,
+                )
+        return normalized_payload
+
+    def _normalize_project_structured_fields(self, payload: dict[str, Any]) -> dict[str, Any]:
+        normalized_payload = dict(payload)
+        if "tasks" in normalized_payload:
+            normalized_payload["tasks"] = self._normalize_string_list(
+                normalized_payload["tasks"],
+                field_label="Project tasks",
+            )
+        if "milestones" in normalized_payload:
+            normalized_payload["milestones"] = self._normalize_labeled_state_list(
+                normalized_payload["milestones"],
+                field_label="Project milestones",
+            )
+        if "team" in normalized_payload:
+            normalized_payload["team"] = self._normalize_team_list(
+                normalized_payload["team"],
+                field_label="Project team",
+            )
+        return normalized_payload
+
+    def _normalize_figure_structured_fields(self, payload: dict[str, Any]) -> dict[str, Any]:
+        normalized_payload = dict(payload)
+        if "key_metrics" in normalized_payload:
+            normalized_payload["key_metrics"] = self._normalize_string_list(
+                normalized_payload["key_metrics"],
+                field_label="Figure key_metrics",
+            )
+        return normalized_payload
+
+    def _normalize_manuscript_structured_fields(self, payload: dict[str, Any]) -> dict[str, Any]:
+        normalized_payload = dict(payload)
+        if "sections" in normalized_payload:
+            normalized_payload["sections"] = self._normalize_labeled_state_list(
+                normalized_payload["sections"],
+                field_label="Manuscript sections",
+            )
+        if "deliverables" in normalized_payload:
+            normalized_payload["deliverables"] = self._normalize_labeled_state_list(
+                normalized_payload["deliverables"],
+                field_label="Manuscript deliverables",
+            )
+        return normalized_payload
+
+    def _normalize_string_list(self, value: Any, field_label: str) -> list[str]:
+        if not isinstance(value, list):
+            raise ValueError(f"{field_label} must be a list of non-empty strings")
+        return [self._require_non_empty_string(item, field_label=f"{field_label} item") for item in value]
+
+    def _normalize_labeled_state_list(self, value: Any, field_label: str) -> list[dict[str, Any]]:
+        if not isinstance(value, list):
+            raise ValueError(f"{field_label} must be a list of objects")
+        normalized_items: list[dict[str, Any]] = []
+        for item in value:
+            if not isinstance(item, dict):
+                raise ValueError(f"{field_label} must be a list of objects")
+            normalized_item = dict(item)
+            normalized_item["label"] = self._require_non_empty_string(
+                item.get("label"),
+                field_label=f"{field_label} label",
+            )
+            normalized_item["state"] = self._require_non_empty_string(
+                item.get("state"),
+                field_label=f"{field_label} state",
+            )
+            normalized_items.append(normalized_item)
+        return normalized_items
+
+    def _normalize_team_list(self, value: Any, field_label: str) -> list[dict[str, Any]]:
+        if not isinstance(value, list):
+            raise ValueError(f"{field_label} must be a list of objects")
+        normalized_items: list[dict[str, Any]] = []
+        for item in value:
+            if not isinstance(item, dict):
+                raise ValueError(f"{field_label} must be a list of objects")
+            normalized_item = dict(item)
+            normalized_item["name"] = self._require_non_empty_string(
+                item.get("name"),
+                field_label=f"{field_label} name",
+            )
+            normalized_item["role"] = self._require_non_empty_string(
+                item.get("role"),
+                field_label=f"{field_label} role",
+            )
+            normalized_item["initials"] = self._require_non_empty_string(
+                item.get("initials"),
+                field_label=f"{field_label} initials",
+            )
+            normalized_items.append(normalized_item)
+        return normalized_items
 
     def _timestamp(self) -> str:
         return datetime.now(UTC).isoformat(timespec="seconds")
